@@ -119,7 +119,7 @@ curl http://localhost:8080/clients
 
 ### Get Client by CPF
 ```bash
-curl http://localhost:8080/clients/cpf/12345678909
+curl http://localhost:8080/clients/12345678909
 ```
 
 ---
@@ -138,14 +138,14 @@ curl -X PATCH http://localhost:8080/clients/12345678909 \
 
 ### Inactivate Client (Soft Delete)
 ```bash
-curl -X DELETE http://localhost:8080/clients/cpf/12345678909
+curl -X DELETE http://localhost:8080/clients/12345678909
 ```
 
 ---
 
 ### Reactivate Client
 ```bash
-curl -X PATCH http://localhost:8080/clients/cpf/12345678909/activate
+curl -X PATCH http://localhost:8080/clients/12345678909/activate
 ```
 
 ---
