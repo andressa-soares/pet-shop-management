@@ -85,11 +85,11 @@ http://localhost:8080/v3/api-docs
 |------|--------|------------|
 | GET | `/clients` | List all active clients |
 | GET | `/clients/{id}` | Get client by ID |
-| GET | `/clients/cpf/{cpf}` | Get client by CPF |
+| GET | `/clients/{cpf}` | Get client by CPF |
 | POST | `/clients` | Create a new client |
-| PATCH | `/clients/cpf/{cpf}` | Update client contact info |
-| DELETE | `/clients/cpf/{cpf}` | Inactivate (soft delete) client |
-| PATCH | `/clients/cpf/{cpf}/activate` | Reactivate an inactive client |
+| PATCH | `/clients/{cpf}` | Update client contact info |
+| DELETE | `/clients/{cpf}` | Inactivate (soft delete) client |
+| PATCH | `/clients/{cpf}/activate` | Reactivate an inactive client |
 
 ---
 
