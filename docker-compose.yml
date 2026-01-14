@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: petshop-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: petshop
+      POSTGRES_USER: petshop_user
+      POSTGRES_PASSWORD: petshop_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - petshop_pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: petshop-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/petshop
+      SPRING_DATASOURCE_USERNAME: petshop_user
+      SPRING_DATASOURCE_PASSWORD: petshop_pass
+
+volumes:
+  petshop_pgdata:
