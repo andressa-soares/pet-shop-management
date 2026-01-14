@@ -126,7 +126,7 @@ curl http://localhost:8080/clients/cpf/12345678909
 
 ### Update Client Contact Info (PATCH)
 ```bash
-curl -X PATCH http://localhost:8080/clients/cpf/12345678909 \
+curl -X PATCH http://localhost:8080/clients/12345678909 \
   -H "Content-Type: application/json" \
   -d '{
     "email": "new.email@email.com",
