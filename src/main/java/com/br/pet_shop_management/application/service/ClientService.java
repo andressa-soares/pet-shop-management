@@ -69,7 +69,7 @@ public class ClientService {
             throw new BusinessException("Inactive clients cannot be updated.");
         }
 
-        client.patchContactInfo(form.phone(), form.email(), form.address());
+        client.updateContactInfo(form.phone(), form.email(), form.address());
 
         ClientEntity saved = clientRepository.save(client);
         return ClientMapper.toDTO(saved);

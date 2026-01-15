@@ -3,8 +3,10 @@ package com.br.pet_shop_management.api.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public record ClientForm(@NotBlank(message = "Name is required.")
+                         @Size(min = 2, max = 80, message = "Name must be between 2 and 80 characters.")
                          String name,
 
                          @NotBlank(message = "CPF is required.")

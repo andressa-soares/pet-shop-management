@@ -1,0 +1,33 @@
+package com.br.pet_shop_management.domain.enums;
+
+public enum Breed {
+    LABRADOR_RETRIEVER,
+    GOLDEN_RETRIEVER,
+    GERMAN_SHEPHERD,
+    FRENCH_BULLDOG,
+    ENGLISH_BULLDOG,
+    POODLE,
+    BEAGLE,
+    ROTTWEILER,
+    YORKSHIRE_TERRIER,
+    DACHSHUND,
+    SHIH_TZU,
+    PUG,
+    BOXER,
+    BORDER_COLLIE,
+    SIBERIAN_HUSKY,
+    CHIHUAHUA,
+    PIT_BULL,
+    MIXED_DOG,
+    PERSIAN,
+    SIAMESE,
+    MAINE_COON,
+    RAGDOLL,
+    BENGAL,
+    BRITISH_SHORTHAIR,
+    SPHYNX,
+    SCOTTISH_FOLD,
+    ABYSSINIAN,
+    AMERICAN_SHORTHAIR,
+    MIXED_CAT
+}

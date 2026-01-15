@@ -49,7 +49,7 @@ public class ClientEntity {
         this.status = ClientStatus.ACTIVE;
     }
 
-    public void patchContactInfo(String phone, String email, String address) {
+    public void updateContactInfo(String phone, String email, String address) {
         if (phone != null) this.phone = phone;
         if (email != null) this.email = email;
         if (address != null) this.address = address;
