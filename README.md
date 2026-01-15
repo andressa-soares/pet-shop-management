@@ -85,11 +85,11 @@ http://localhost:8080/v3/api-docs
 |------|--------|------------|
 | GET | `/clients` | List all active clients |
 | GET | `/clients/{id}` | Get client by ID |
-| GET | `/clients/cpf/{cpf}` | Get client by CPF |
+| GET | `/clients/{cpf}` | Get client by CPF |
 | POST | `/clients` | Create a new client |
-| PATCH | `/clients/cpf/{cpf}` | Update client contact info |
-| DELETE | `/clients/cpf/{cpf}` | Inactivate (soft delete) client |
-| PATCH | `/clients/cpf/{cpf}/activate` | Reactivate an inactive client |
+| PATCH | `/clients/{cpf}` | Update client contact info |
+| DELETE | `/clients/{cpf}` | Inactivate (soft delete) client |
+| PATCH | `/clients/{cpf}/activate` | Reactivate an inactive client |
 
 ---
 
@@ -119,14 +119,14 @@ curl http://localhost:8080/clients
 
 ### Get Client by CPF
 ```bash
-curl http://localhost:8080/clients/cpf/12345678909
+curl http://localhost:8080/clients/12345678909
 ```
 
 ---
 
 ### Update Client Contact Info (PATCH)
 ```bash
-curl -X PATCH http://localhost:8080/clients/cpf/12345678909 \
+curl -X PATCH http://localhost:8080/clients/12345678909 \
   -H "Content-Type: application/json" \
   -d '{
     "email": "new.email@email.com",
@@ -138,14 +138,14 @@ curl -X PATCH http://localhost:8080/clients/cpf/12345678909 \
 
 ### Inactivate Client (Soft Delete)
 ```bash
-curl -X DELETE http://localhost:8080/clients/cpf/12345678909
+curl -X DELETE http://localhost:8080/clients/12345678909
 ```
 
 ---
 
 ### Reactivate Client
 ```bash
-curl -X PATCH http://localhost:8080/clients/cpf/12345678909/activate
+curl -X PATCH http://localhost:8080/clients/12345678909/activate
 ```
 
 ---
