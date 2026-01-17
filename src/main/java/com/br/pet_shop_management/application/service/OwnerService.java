@@ -9,6 +9,7 @@ import com.br.pet_shop_management.domain.enums.OwnerStatus;
 import com.br.pet_shop_management.application.exception.BusinessException;
 import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.util.CpfUtils;
+import com.br.pet_shop_management.util.PhoneUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,13 +45,16 @@ public class OwnerService {
 
     public OwnerDTO saveOwner(OwnerForm ownerForm) {
         String normalizedCpf = normalizeCpf(ownerForm.cpf());
+        String normalizedPhone = normalizePhone(ownerForm.phone());
 
         if (ownerRepository.existsByCpf(normalizedCpf)) {
-            throw new BusinessException("Owner not found.");
+            throw new BusinessException("CPF already exists.");
         }
 
-        OwnerStatus status = OwnerStatus.ACTIVE; // default
-        OwnerEntity ownerEntity = OwnerMapper.toEntity(ownerForm, normalizedCpf, status);
+        OwnerStatus status = OwnerStatus.ACTIVE;
+
+        OwnerEntity ownerEntity = OwnerMapper.toEntity(ownerForm, normalizedCpf, normalizedPhone, status);
+
         OwnerEntity saved = ownerRepository.save(ownerEntity);
         return OwnerMapper.toDTO(saved);
     }
@@ -69,7 +73,9 @@ public class OwnerService {
             throw new BusinessException("Inactive owners cannot be updated.");
         }
 
-        owner.updateContactInfo(form.phone(), form.email(), form.address());
+        String normalizedPhone = form.phone() == null ? null : normalizePhone(form.phone());
+
+        owner.updateContactInfo(normalizedPhone, form.email(), form.address());
 
         OwnerEntity saved = ownerRepository.save(owner);
         return OwnerMapper.toDTO(saved);
@@ -117,6 +123,20 @@ public class OwnerService {
         if (!CpfUtils.hasValidLength(normalized)) {
             throw new BusinessException("CPF must contain exactly 11 digits.");
         }
+        return normalized;
+    }
+
+    private String normalizePhone(String phone) {
+        String normalized = PhoneUtils.normalize(phone);
+
+        if (normalized == null || normalized.isBlank()) {
+            throw new BusinessException("Phone must be provided.");
+        }
+
+        if (!PhoneUtils.hasValidLength(normalized)) {
+            throw new BusinessException("Phone must have 10 or 11 digits (no mask).");
+        }
+
         return normalized;
     }
 }

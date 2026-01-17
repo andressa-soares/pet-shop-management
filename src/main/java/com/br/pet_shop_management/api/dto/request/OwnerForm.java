@@ -14,7 +14,7 @@ public record OwnerForm(@NotBlank(message = "Name is required.")
                         String cpf,
 
                         @NotBlank(message = "Phone is required.")
-                        @Pattern(regexp = "^\\(\\d{2}\\)\\s?\\d{4,5}-\\d{4}$", message = "Phone must match (DD) 99999-9999.")
+                        @Pattern(regexp = "^\\d{10,11}$", message = "Phone must have 10 or 11 digits (no mask).")
                         String phone,
 
                         @Pattern(regexp = "^(?!\\s*$).+", message = "Email must not be blank.")

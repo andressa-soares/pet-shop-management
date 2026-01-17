@@ -5,6 +5,7 @@ import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
 import com.br.pet_shop_management.domain.enums.OwnerStatus;
 import com.br.pet_shop_management.util.CpfUtils;
+import com.br.pet_shop_management.util.PhoneUtils;
 
 public final class OwnerMapper {
     private OwnerMapper() {}
@@ -18,19 +19,21 @@ public final class OwnerMapper {
                 entity.getId(),
                 entity.getName(),
                 CpfUtils.format(entity.getCpf()),
-                entity.getPhone(),
+                PhoneUtils.format(entity.getPhone()),
                 entity.getEmail(),
                 entity.getAddress(),
-                entity.getStatus());
+                entity.getStatus()
+        );
     }
 
-    public static OwnerEntity toEntity(OwnerForm form, String normalizedCpf, OwnerStatus ownerStatus) {
+    public static OwnerEntity toEntity(OwnerForm form, String normalizedCpf, String normalizedPhone, OwnerStatus ownerStatus) {
         return new OwnerEntity(
                 form.name(),
                 normalizedCpf,
-                form.phone(),
+                normalizedPhone,
                 form.email(),
                 form.address(),
-                ownerStatus);
+                ownerStatus
+        );
     }
 }
