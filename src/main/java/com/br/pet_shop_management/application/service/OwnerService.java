@@ -95,7 +95,7 @@ public class OwnerService {
         return OwnerMapper.toDTO(saved);
     }
 
-    public OwnerDTO deleteOwner(String cpf) {
+    public OwnerDTO deactivateOwner(String cpf) {
         String normalizedCpf = normalizeCpf(cpf);
 
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)

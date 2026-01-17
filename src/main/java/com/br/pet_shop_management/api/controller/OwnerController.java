@@ -50,7 +50,7 @@ public class OwnerController {
     }
 
     @DeleteMapping("/{cpf}/deactivate")
-    public OwnerDTO inactivateOwner(@PathVariable String cpf) {
-        return ownerService.deleteOwner(cpf);
+    public OwnerDTO deactivateOwner(@PathVariable String cpf) {
+        return ownerService.deactivateOwner(cpf);
     }
 }
