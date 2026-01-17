@@ -70,7 +70,7 @@ public class PetController {
 
     @DeleteMapping("/{id:\\d+}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public PetDTO deletePet(@PathVariable Long id) {
-        return petService.deletePet(id);
+    public void deletePet(@PathVariable Long id) {
+        petService.deletePet(id);
     }
 }

@@ -87,10 +87,10 @@ public class PetService {
     }
 
     @Transactional
-    public PetDTO deletePet(Long id) {
+    public void deletePet(Long id) {
         PetEntity pet = findPet(id);
         petRepository.delete(pet);
-        return PetMapper.toDTO(pet);
+        PetMapper.toDTO(pet);
     }
 
     private PetEntity findPet(Long id) {
