@@ -12,9 +12,9 @@ import com.br.pet_shop_management.util.CpfUtils;
 import com.br.pet_shop_management.util.PhoneUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +22,9 @@ public class OwnerService {
 
     private final OwnerRepository ownerRepository;
 
-    public List<OwnerDTO> findAll() {
-        return ownerRepository.findByStatus(OwnerStatus.ACTIVE)
-                .stream()
-                .map(OwnerMapper::toDTO)
-                .toList();
+    public Page<OwnerDTO> findAll(Pageable pageable) {
+        return ownerRepository.findByStatus(OwnerStatus.ACTIVE, pageable)
+                .map(OwnerMapper::toDTO);
     }
 
     public OwnerDTO findByCpf(String cpf) {

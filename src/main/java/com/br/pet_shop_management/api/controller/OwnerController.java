@@ -6,10 +6,10 @@ import com.br.pet_shop_management.api.dto.request.OwnerUpdateForm;
 import com.br.pet_shop_management.application.service.OwnerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/owners")
@@ -19,11 +19,11 @@ public class OwnerController {
     private final OwnerService ownerService;
 
     @GetMapping
-    public List<OwnerDTO> findAll() {
-        return ownerService.findAll();
+    public Page<OwnerDTO> findAll(Pageable pageable) {
+        return ownerService.findAll(pageable);
     }
 
-    @GetMapping("/{cpf}")
+    @GetMapping("/cpf/{cpf}")
     public OwnerDTO findByCpf(@PathVariable String cpf) {
         return ownerService.findByCpf(cpf);
     }
