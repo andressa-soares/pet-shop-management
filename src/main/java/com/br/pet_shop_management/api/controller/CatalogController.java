@@ -44,6 +44,7 @@ public class CatalogController {
     }
 
     @DeleteMapping("/{id}/delete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public CatalogDTO deleteCatalogItem(@PathVariable Long id) {
         return catalogService.deleteCatalogItem(id);
     }
