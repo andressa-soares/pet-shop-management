@@ -19,9 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.EnumSet;
-import java.util.Set;
-
 @Service
 @RequiredArgsConstructor
 public class PetService {
@@ -98,27 +95,15 @@ public class PetService {
     }
 
     private void validateBreedMatchesSpecies(Species species, Breed breed) {
-        boolean isCatBreed = CAT_BREEDS.contains(breed);
-
-        if (species == Species.CAT && !isCatBreed) {
-            throw new BusinessException("Breed is not valid for species CAT.");
+        if (species == null) {
+            throw new BusinessException("Species must be provided.");
         }
-        if (species == Species.DOG && isCatBreed) {
-            throw new BusinessException("Breed is not valid for species DOG.");
+        if (breed == null) {
+            throw new BusinessException("Breed must be provided.");
+        }
+
+        if (!breed.belongsTo(species)) {
+            throw new BusinessException("Breed is not valid for species " + species + ".");
         }
     }
-
-    private static final Set<Breed> CAT_BREEDS = EnumSet.of(
-            Breed.PERSIAN,
-            Breed.SIAMESE,
-            Breed.MAINE_COON,
-            Breed.RAGDOLL,
-            Breed.BENGAL,
-            Breed.BRITISH_SHORTHAIR,
-            Breed.SPHYNX,
-            Breed.SCOTTISH_FOLD,
-            Breed.ABYSSINIAN,
-            Breed.AMERICAN_SHORTHAIR,
-            Breed.MIXED_CAT
-    );
 }

@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/pets")
 @RequiredArgsConstructor
@@ -30,9 +32,14 @@ public class PetController {
         return petService.findPets(species, breed, ownerId, pageable);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public PetDTO findById(@PathVariable Long id) {
         return petService.findById(id);
+    }
+
+    @GetMapping("/breeds")
+    public List<Breed> listBreedsBySpecies(@RequestParam Species species) {
+        return Breed.bySpecies(species);
     }
 
     @PostMapping
@@ -41,29 +48,29 @@ public class PetController {
         return petService.savePet(petForm);
     }
 
-    @PatchMapping("/{id}/notes")
+    @PatchMapping("/{id:\\d+}/notes")
     public PetDTO updateNotes(@PathVariable Long id,
                               @RequestBody PetUpdateForm form) {
         return petService.updateNotes(id, form.notes());
     }
 
-    @DeleteMapping("/{id}/notes")
+    @DeleteMapping("/{id:\\d+}/notes")
     public PetDTO deleteNotes(@PathVariable Long id) {
         return petService.deleteNotes(id);
     }
 
-    @PatchMapping("/{id}/allergies")
+    @PatchMapping("/{id:\\d+}/allergies")
     public PetDTO updateAllergies(@PathVariable Long id,
                                   @RequestBody PetUpdateForm form) {
         return petService.updateAllergies(id, form.allergies());
     }
 
-    @DeleteMapping("/{id}/allergies")
+    @DeleteMapping("/{id:\\d+}/allergies")
     public PetDTO deleteAllergies(@PathVariable Long id) {
         return petService.deleteAllergies(id);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public PetDTO deletePet(@PathVariable Long id) {
         return petService.deletePet(id);
     }
