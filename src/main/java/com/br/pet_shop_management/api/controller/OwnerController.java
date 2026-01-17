@@ -28,7 +28,7 @@ public class OwnerController {
         return ownerService.findByCpf(cpf);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public OwnerDTO findById(@PathVariable Long id) {
         return ownerService.findById(id);
     }
@@ -39,7 +39,7 @@ public class OwnerController {
         return ownerService.saveOwner(ownerForm);
     }
 
-    @PatchMapping("/{cpf}")
+    @PatchMapping("/{cpf}/update")
     public OwnerDTO updateOwnerContact(@PathVariable String cpf, @Valid @RequestBody OwnerUpdateForm form) {
         return ownerService.updateOwnerContact(cpf, form);
     }
@@ -49,8 +49,8 @@ public class OwnerController {
         return ownerService.activateOwner(cpf);
     }
 
-    @DeleteMapping("/{cpf}")
-    public OwnerDTO deleteOwner(@PathVariable String cpf) {
+    @DeleteMapping("/{cpf}/deactivate")
+    public OwnerDTO inactivateOwner(@PathVariable String cpf) {
         return ownerService.deleteOwner(cpf);
     }
 }

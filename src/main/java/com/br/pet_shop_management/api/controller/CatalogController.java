@@ -22,7 +22,7 @@ public class CatalogController {
         return catalogService.findCatalogItems(active, pageable);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public CatalogDTO findById(@PathVariable Long id) {
         return catalogService.findById(id);
     }
@@ -33,7 +33,7 @@ public class CatalogController {
         return catalogService.saveCatalogItem(form);
     }
 
-    @PatchMapping("/{id}/activate")
+    @PatchMapping("/{id:\\d+}/activate")
     public CatalogDTO activateCatalogItem(@PathVariable Long id) {
         return catalogService.activateCatalogItem(id);
     }
@@ -43,7 +43,7 @@ public class CatalogController {
         return catalogService.deactivateCatalogItem(id);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
     public CatalogDTO deleteCatalogItem(@PathVariable Long id) {
         return catalogService.deleteCatalogItem(id);
     }

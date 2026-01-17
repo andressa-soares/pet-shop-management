@@ -48,29 +48,27 @@ public class PetController {
         return petService.savePet(petForm);
     }
 
-    @PatchMapping("/{id:\\d+}/notes")
-    public PetDTO updateNotes(@PathVariable Long id,
-                              @RequestBody PetUpdateForm form) {
+    @PatchMapping("/notes/{id:\\d+}/update")
+    public PetDTO updateNotes(@PathVariable Long id, @RequestBody PetUpdateForm form) {
         return petService.updateNotes(id, form.notes());
     }
 
-    @DeleteMapping("/{id:\\d+}/notes")
+    @DeleteMapping("/notes/{id:\\d+}/delete")
     public PetDTO deleteNotes(@PathVariable Long id) {
         return petService.deleteNotes(id);
     }
 
-    @PatchMapping("/{id:\\d+}/allergies")
-    public PetDTO updateAllergies(@PathVariable Long id,
-                                  @RequestBody PetUpdateForm form) {
+    @PatchMapping("/allergies/{id:\\d+}/update")
+    public PetDTO updateAllergies(@PathVariable Long id, @RequestBody PetUpdateForm form) {
         return petService.updateAllergies(id, form.allergies());
     }
 
-    @DeleteMapping("/{id:\\d+}/allergies")
+    @DeleteMapping("/allergies/{id:\\d+}/delete")
     public PetDTO deleteAllergies(@PathVariable Long id) {
         return petService.deleteAllergies(id);
     }
 
-    @DeleteMapping("/{id:\\d+}")
+    @DeleteMapping("/{id:\\d+}/delete")
     public PetDTO deletePet(@PathVariable Long id) {
         return petService.deletePet(id);
     }
