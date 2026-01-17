@@ -22,8 +22,7 @@ public final class OwnerMapper {
                 PhoneUtils.format(entity.getPhone()),
                 entity.getEmail(),
                 entity.getAddress(),
-                entity.getStatus()
-        );
+                entity.getStatus());
     }
 
     public static OwnerEntity toEntity(OwnerForm form, String normalizedCpf, String normalizedPhone, Status ownerStatus) {
@@ -33,7 +32,6 @@ public final class OwnerMapper {
                 normalizedPhone,
                 form.email(),
                 form.address(),
-                ownerStatus
-        );
+                ownerStatus);
     }
 }

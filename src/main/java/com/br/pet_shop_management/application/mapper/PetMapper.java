@@ -24,8 +24,7 @@ public final class PetMapper {
                 entity.getSize(),
                 entity.getBirthDate(),
                 entity.getNotes(),
-                entity.getAllergies()
-        );
+                entity.getAllergies());
     }
 
     public static PetEntity toEntity(PetForm form, OwnerEntity owner) {
@@ -37,7 +36,6 @@ public final class PetMapper {
                 form.size(),
                 form.birthDate(),
                 form.notes(),
-                form.allergies()
-        );
+                form.allergies());
     }
 }

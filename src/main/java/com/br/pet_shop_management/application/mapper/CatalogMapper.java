@@ -20,8 +20,7 @@ public final class CatalogMapper {
                 entity.getPriceSmall(),
                 entity.getPriceMedium(),
                 entity.getPriceLarge(),
-                entity.getStatus()
-        );
+                entity.getStatus());
     }
 
     public static CatalogEntity toEntity(CatalogForm form) {
@@ -31,7 +30,6 @@ public final class CatalogMapper {
                 form.durationMinutes(),
                 form.priceSmall(),
                 form.priceMedium(),
-                form.priceLarge()
-        );
+                form.priceLarge());
     }
 }
