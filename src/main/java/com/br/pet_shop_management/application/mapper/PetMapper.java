@@ -2,7 +2,7 @@ package com.br.pet_shop_management.application.mapper;
 
 import com.br.pet_shop_management.api.dto.request.PetForm;
 import com.br.pet_shop_management.api.dto.response.PetDTO;
-import com.br.pet_shop_management.domain.entity.ClientEntity;
+import com.br.pet_shop_management.domain.entity.OwnerEntity;
 import com.br.pet_shop_management.domain.entity.PetEntity;
 
 public final class PetMapper {
@@ -13,11 +13,11 @@ public final class PetMapper {
             throw new IllegalArgumentException("PetEntity must not be null");
         }
 
-        Long clientId = entity.getClient() != null ? entity.getClient().getId() : null;
+        Long ownerId = entity.getOwner() != null ? entity.getOwner().getId() : null;
 
         return new PetDTO(
                 entity.getId(),
-                clientId,
+                ownerId,
                 entity.getName(),
                 entity.getSpecies(),
                 entity.getBreed(),
@@ -28,9 +28,9 @@ public final class PetMapper {
         );
     }
 
-    public static PetEntity toEntity(PetForm form, ClientEntity client) {
+    public static PetEntity toEntity(PetForm form, OwnerEntity owner) {
         return new PetEntity(
-                client,
+                owner,
                 form.name(),
                 form.species(),
                 form.breed(),

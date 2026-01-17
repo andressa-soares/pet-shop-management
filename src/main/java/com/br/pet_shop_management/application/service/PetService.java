@@ -4,12 +4,12 @@ import com.br.pet_shop_management.api.dto.request.PetForm;
 import com.br.pet_shop_management.api.dto.response.PetDTO;
 import com.br.pet_shop_management.application.exception.BusinessException;
 import com.br.pet_shop_management.application.mapper.PetMapper;
-import com.br.pet_shop_management.domain.entity.ClientEntity;
+import com.br.pet_shop_management.domain.entity.OwnerEntity;
 import com.br.pet_shop_management.domain.entity.PetEntity;
 import com.br.pet_shop_management.domain.enums.Breed;
-import com.br.pet_shop_management.domain.enums.ClientStatus;
+import com.br.pet_shop_management.domain.enums.OwnerStatus;
 import com.br.pet_shop_management.domain.enums.Species;
-import com.br.pet_shop_management.infrastructure.persistence.ClientRepository;
+import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.infrastructure.persistence.PetRepository;
 import com.br.pet_shop_management.infrastructure.persistence.spec.PetSpecifications;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,13 +27,13 @@ import java.util.Set;
 public class PetService {
 
     private final PetRepository petRepository;
-    private final ClientRepository clientRepository;
+    private final OwnerRepository ownerRepository;
 
-    public Page<PetDTO> findPets(Species species, Breed breed, Long clientId, Pageable pageable) {
+    public Page<PetDTO> findPets(Species species, Breed breed, Long ownerId, Pageable pageable) {
         Specification<PetEntity> spec = Specification
                 .where(PetSpecifications.hasSpecies(species))
                 .and(PetSpecifications.hasBreed(breed))
-                .and(PetSpecifications.hasClientId(clientId));
+                .and(PetSpecifications.hasOwnerId(ownerId));
 
         return petRepository.findAll(spec, pageable)
                 .map(PetMapper::toDTO);
@@ -46,16 +46,16 @@ public class PetService {
     }
 
     public PetDTO savePet(PetForm form) {
-        ClientEntity client = clientRepository.findById(form.clientId())
-                .orElseThrow(() -> new EntityNotFoundException("Client not found."));
+        OwnerEntity owner = ownerRepository.findById(form.ownerId())
+                .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (client.getStatus() == ClientStatus.INACTIVE) {
-            throw new BusinessException("Inactive clients cannot have pets.");
+        if (owner.getStatus() == OwnerStatus.INACTIVE) {
+            throw new BusinessException("Inactive owners cannot have pets.");
         }
 
         validateBreedMatchesSpecies(form.species(), form.breed());
 
-        PetEntity pet = PetMapper.toEntity(form, client);
+        PetEntity pet = PetMapper.toEntity(form, owner);
         return PetMapper.toDTO(petRepository.save(pet));
     }
 

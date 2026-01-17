@@ -24,10 +24,10 @@ public class PetController {
     public Page<PetDTO> findPets(
             @RequestParam(required = false) Species species,
             @RequestParam(required = false) Breed breed,
-            @RequestParam(required = false) Long clientId,
+            @RequestParam(required = false) Long ownerId,
             Pageable pageable
     ) {
-        return petService.findPets(species, breed, clientId, pageable);
+        return petService.findPets(species, breed, ownerId, pageable);
     }
 
     @GetMapping("/{id}")

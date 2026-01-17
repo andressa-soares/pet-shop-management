@@ -7,7 +7,7 @@ import com.br.pet_shop_management.domain.enums.Species;
 import java.time.LocalDate;
 
 public record PetDTO(Long id,
-                     Long clientId,
+                     Long ownerId,
                      String name,
                      Species species,
                      Breed breed,

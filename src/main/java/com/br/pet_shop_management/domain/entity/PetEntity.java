@@ -20,8 +20,8 @@ public class PetEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id", nullable = false)
-    private ClientEntity client;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private OwnerEntity owner;
 
     @Column(nullable = false)
     private String name;
@@ -34,7 +34,7 @@ public class PetEntity {
     @Enumerated(EnumType.STRING)
     private Breed breed;
 
-    @Column(nullable = false)
+    @Column(nullable=false, updatable=false)
     @Enumerated(EnumType.STRING)
     private PetSize size;
 
@@ -45,8 +45,8 @@ public class PetEntity {
 
     private String allergies;
 
-    public PetEntity(ClientEntity client, String name, Species species, Breed breed, PetSize size, LocalDate birthDate, String notes, String allergies) {
-        this.client = client;
+    public PetEntity(OwnerEntity owner, String name, Species species, Breed breed, PetSize size, LocalDate birthDate, String notes, String allergies) {
+        this.owner = owner;
         this.name = name;
         this.species = species;
         this.breed = breed;

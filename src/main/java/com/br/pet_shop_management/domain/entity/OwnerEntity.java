@@ -1,16 +1,16 @@
 package com.br.pet_shop_management.domain.entity;
 
-import com.br.pet_shop_management.domain.enums.ClientStatus;
+import com.br.pet_shop_management.domain.enums.OwnerStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "clients")
+@Table(name = "owners")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ClientEntity {
+public class OwnerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,9 +30,9 @@ public class ClientEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ClientStatus status;
+    private OwnerStatus status;
 
-    public ClientEntity(String name, String cpf, String phone, String email, String address, ClientStatus status) {
+    public OwnerEntity(String name, String cpf, String phone, String email, String address, OwnerStatus status) {
         this.name = name;
         this.cpf = cpf;
         this.phone = phone;
@@ -41,12 +41,12 @@ public class ClientEntity {
         this.status = status;
     }
 
-    public void inactivate() {
-        this.status = ClientStatus.INACTIVE;
+    public void deactivate() {
+        this.status = OwnerStatus.INACTIVE;
     }
 
     public void activate() {
-        this.status = ClientStatus.ACTIVE;
+        this.status = OwnerStatus.ACTIVE;
     }
 
     public void updateContactInfo(String phone, String email, String address) {

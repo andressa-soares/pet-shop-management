@@ -18,8 +18,8 @@ public final class PetSpecifications {
                 breed == null ? cb.conjunction() : cb.equal(root.get("breed"), breed);
     }
 
-    public static Specification<PetEntity> hasClientId(Long clientId) {
+    public static Specification<PetEntity> hasOwnerId(Long ownerId) {
         return (root, query, cb) ->
-                clientId == null ? cb.conjunction() : cb.equal(root.get("client").get("id"), clientId);
+                ownerId == null ? cb.conjunction() : cb.equal(root.get("owner").get("id"), ownerId);
     }
 }

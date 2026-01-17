@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
-public record PetForm(@NotNull(message = "Client ID is required.")
-                      Long clientId,
+public record PetForm(@NotNull(message = "Owner ID is required.")
+                      Long ownerId,
 
                       @NotBlank(message = "Name is required.")
                       @Size(min = 2, max = 30, message = "Name must be between 2 and 30 characters.")
