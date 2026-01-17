@@ -13,6 +13,7 @@ import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.infrastructure.persistence.PetRepository;
 import com.br.pet_shop_management.infrastructure.persistence.spec.PetSpecifications;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +31,8 @@ public class PetService {
         Specification<PetEntity> spec = Specification
                 .where(PetSpecifications.hasSpecies(species))
                 .and(PetSpecifications.hasBreed(breed))
-                .and(PetSpecifications.hasOwnerId(ownerId));
+                .and(PetSpecifications.hasOwnerId(ownerId))
+                .and(PetSpecifications.hasOwnerStatus(OwnerStatus.ACTIVE)); // filtro novo
 
         return petRepository.findAll(spec, pageable)
                 .map(PetMapper::toDTO);
@@ -56,30 +58,35 @@ public class PetService {
         return PetMapper.toDTO(petRepository.save(pet));
     }
 
+    @Transactional
     public PetDTO updateNotes(Long petId, String notes) {
         PetEntity pet = findPet(petId);
         pet.updateNotes(notes);
         return PetMapper.toDTO(petRepository.save(pet));
     }
 
+    @Transactional
     public PetDTO deleteNotes(Long petId) {
         PetEntity pet = findPet(petId);
         pet.clearNotes();
         return PetMapper.toDTO(petRepository.save(pet));
     }
 
+    @Transactional
     public PetDTO updateAllergies(Long petId, String allergies) {
         PetEntity pet = findPet(petId);
         pet.updateAllergies(allergies);
         return PetMapper.toDTO(petRepository.save(pet));
     }
 
+    @Transactional
     public PetDTO deleteAllergies(Long petId) {
         PetEntity pet = findPet(petId);
         pet.clearAllergies();
         return PetMapper.toDTO(petRepository.save(pet));
     }
 
+    @Transactional
     public PetDTO deletePet(Long id) {
         PetEntity pet = findPet(id);
         petRepository.delete(pet);
@@ -90,8 +97,15 @@ public class PetService {
         if (id == null) {
             throw new BusinessException("Pet ID must be provided.");
         }
-        return petRepository.findById(id)
+
+        PetEntity pet = petRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found."));
+
+        if (pet.getOwner().getStatus() == OwnerStatus.INACTIVE) {
+            throw new BusinessException("Pets from inactive owners cannot be updated.");
+        }
+
+        return pet;
     }
 
     private void validateBreedMatchesSpecies(Species species, Breed breed) {
