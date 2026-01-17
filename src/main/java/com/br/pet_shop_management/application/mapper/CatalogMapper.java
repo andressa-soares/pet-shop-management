@@ -9,7 +9,7 @@ public final class CatalogMapper {
 
     public static CatalogDTO toDTO(CatalogEntity entity) {
         if (entity == null) {
-            throw new IllegalArgumentException("CatalogEntity must not be null");
+            throw new IllegalArgumentException("CatalogEntity must not be null.");
         }
 
         return new CatalogDTO(
@@ -20,7 +20,7 @@ public final class CatalogMapper {
                 entity.getPriceSmall(),
                 entity.getPriceMedium(),
                 entity.getPriceLarge(),
-                entity.getActive()
+                entity.getStatus()
         );
     }
 
@@ -31,8 +31,7 @@ public final class CatalogMapper {
                 form.durationMinutes(),
                 form.priceSmall(),
                 form.priceMedium(),
-                form.priceLarge(),
-                true
+                form.priceLarge()
         );
     }
 }

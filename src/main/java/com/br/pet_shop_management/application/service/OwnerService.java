@@ -5,7 +5,7 @@ import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.api.dto.request.OwnerUpdateForm;
 import com.br.pet_shop_management.application.mapper.OwnerMapper;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
-import com.br.pet_shop_management.domain.enums.OwnerStatus;
+import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.application.exception.BusinessException;
 import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.util.CpfUtils;
@@ -23,7 +23,7 @@ public class OwnerService {
     private final OwnerRepository ownerRepository;
 
     public Page<OwnerDTO> findAll(Pageable pageable) {
-        return ownerRepository.findByStatus(OwnerStatus.ACTIVE, pageable)
+        return ownerRepository.findByStatus(Status.ACTIVE, pageable)
                 .map(OwnerMapper::toDTO);
     }
 
@@ -49,7 +49,7 @@ public class OwnerService {
             throw new BusinessException("CPF already exists.");
         }
 
-        OwnerStatus status = OwnerStatus.ACTIVE;
+        Status status = Status.ACTIVE;
 
         OwnerEntity ownerEntity = OwnerMapper.toEntity(ownerForm, normalizedCpf, normalizedPhone, status);
 
@@ -67,7 +67,7 @@ public class OwnerService {
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (owner.getStatus() == OwnerStatus.INACTIVE) {
+        if (owner.getStatus() == Status.INACTIVE) {
             throw new BusinessException("Inactive owners cannot be updated.");
         }
 
@@ -85,7 +85,7 @@ public class OwnerService {
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (owner.getStatus() == OwnerStatus.ACTIVE) {
+        if (owner.getStatus() == Status.ACTIVE) {
             throw new BusinessException("Owner is already active.");
         }
 
@@ -101,7 +101,7 @@ public class OwnerService {
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (owner.getStatus() == OwnerStatus.INACTIVE) {
+        if (owner.getStatus() == Status.INACTIVE) {
             throw new BusinessException("Owner is already inactive.");
         }
 

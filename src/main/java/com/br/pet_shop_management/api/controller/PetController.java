@@ -68,7 +68,7 @@ public class PetController {
         return petService.deleteAllergies(id);
     }
 
-    @DeleteMapping("/{id:\\d+}/delete")
+    @DeleteMapping("/{id:\\d+}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public PetDTO deletePet(@PathVariable Long id) {
         return petService.deletePet(id);

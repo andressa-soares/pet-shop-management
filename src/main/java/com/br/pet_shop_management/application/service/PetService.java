@@ -7,7 +7,7 @@ import com.br.pet_shop_management.application.mapper.PetMapper;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
 import com.br.pet_shop_management.domain.entity.PetEntity;
 import com.br.pet_shop_management.domain.enums.Breed;
-import com.br.pet_shop_management.domain.enums.OwnerStatus;
+import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.domain.enums.Species;
 import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.infrastructure.persistence.PetRepository;
@@ -32,7 +32,7 @@ public class PetService {
                 .where(PetSpecifications.hasSpecies(species))
                 .and(PetSpecifications.hasBreed(breed))
                 .and(PetSpecifications.hasOwnerId(ownerId))
-                .and(PetSpecifications.hasOwnerStatus(OwnerStatus.ACTIVE)); // filtro novo
+                .and(PetSpecifications.hasOwnerStatus(Status.ACTIVE)); // filtro novo
 
         return petRepository.findAll(spec, pageable)
                 .map(PetMapper::toDTO);
@@ -48,7 +48,7 @@ public class PetService {
         OwnerEntity owner = ownerRepository.findById(form.ownerId())
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (owner.getStatus() == OwnerStatus.INACTIVE) {
+        if (owner.getStatus() == Status.INACTIVE) {
             throw new BusinessException("Inactive owners cannot have pets.");
         }
 
@@ -101,7 +101,7 @@ public class PetService {
         PetEntity pet = petRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pet not found."));
 
-        if (pet.getOwner().getStatus() == OwnerStatus.INACTIVE) {
+        if (pet.getOwner().getStatus() == Status.INACTIVE) {
             throw new BusinessException("Pets from inactive owners cannot be updated.");
         }
 

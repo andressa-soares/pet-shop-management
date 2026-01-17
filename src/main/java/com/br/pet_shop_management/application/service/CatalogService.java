@@ -5,6 +5,7 @@ import com.br.pet_shop_management.api.dto.response.CatalogDTO;
 import com.br.pet_shop_management.application.exception.BusinessException;
 import com.br.pet_shop_management.application.mapper.CatalogMapper;
 import com.br.pet_shop_management.domain.entity.CatalogEntity;
+import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.infrastructure.persistence.CatalogRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,10 @@ public class CatalogService {
 
     private final CatalogRepository catalogRepository;
 
-    public Page<CatalogDTO> findCatalogItems(Boolean active, Pageable pageable) {
-        if (active == null || Boolean.TRUE.equals(active)) {
-            return catalogRepository.findByActiveTrue(pageable)
-                    .map(CatalogMapper::toDTO);
-        }
+    public Page<CatalogDTO> findCatalogItems(Status status, Pageable pageable) {
+        Status effectiveStatus = (status == null) ? Status.ACTIVE : status;
 
-        return catalogRepository.findByActiveFalse(pageable)
+        return catalogRepository.findByStatus(effectiveStatus, pageable)
                 .map(CatalogMapper::toDTO);
     }
 
@@ -46,7 +44,7 @@ public class CatalogService {
     public CatalogDTO activateCatalogItem(Long id) {
         CatalogEntity item = findCatalogEntity(id);
 
-        if (Boolean.TRUE.equals(item.getActive())) {
+        if (item.getStatus() == Status.ACTIVE) {
             throw new BusinessException("Catalog item is already active.");
         }
 
@@ -57,7 +55,7 @@ public class CatalogService {
     public CatalogDTO deactivateCatalogItem(Long id) {
         CatalogEntity item = findCatalogEntity(id);
 
-        if (Boolean.FALSE.equals(item.getActive())) {
+        if (item.getStatus() == Status.INACTIVE) {
             throw new BusinessException("Catalog item is already inactive.");
         }
 
@@ -65,10 +63,9 @@ public class CatalogService {
         return CatalogMapper.toDTO(catalogRepository.save(item));
     }
 
-    public CatalogDTO deleteCatalogItem(Long id) {
+    public void deleteCatalogItem(Long id) {
         CatalogEntity item = findCatalogEntity(id);
         catalogRepository.delete(item);
-        return CatalogMapper.toDTO(item);
     }
 
     private CatalogEntity findCatalogEntity(Long id) {

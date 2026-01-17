@@ -1,6 +1,7 @@
 package com.br.pet_shop_management.domain.entity;
 
 import com.br.pet_shop_management.domain.enums.PetSize;
+import com.br.pet_shop_management.domain.enums.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -34,25 +35,26 @@ public class CatalogEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal priceLarge;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean active;
+    private Status status;
 
-    public CatalogEntity(String name, String description, Integer durationMinutes, BigDecimal priceSmall, BigDecimal priceMedium, BigDecimal priceLarge, Boolean active) {
+    public CatalogEntity(String name, String description, Integer durationMinutes, BigDecimal priceSmall, BigDecimal priceMedium, BigDecimal priceLarge) {
         this.name = name;
         this.description = description;
         this.durationMinutes = durationMinutes;
         this.priceSmall = priceSmall;
         this.priceMedium = priceMedium;
         this.priceLarge = priceLarge;
-        this.active = active;
+        this.status = Status.ACTIVE;
     }
 
     public void deactivate() {
-        this.active = false;
+        this.status = Status.INACTIVE;
     }
 
     public void activate() {
-        this.active = true;
+        this.status = Status.ACTIVE;
     }
 
     public BigDecimal getPriceByPetSize(PetSize petSize) {

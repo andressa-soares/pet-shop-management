@@ -3,6 +3,7 @@ package com.br.pet_shop_management.api.controller;
 import com.br.pet_shop_management.api.dto.request.CatalogForm;
 import com.br.pet_shop_management.api.dto.response.CatalogDTO;
 import com.br.pet_shop_management.application.service.CatalogService;
+import com.br.pet_shop_management.domain.enums.Status;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,8 +19,8 @@ public class CatalogController {
     private final CatalogService catalogService;
 
     @GetMapping
-    public Page<CatalogDTO> findCatalogItems(@RequestParam(required = false) Boolean active, Pageable pageable) {
-        return catalogService.findCatalogItems(active, pageable);
+    public Page<CatalogDTO> findCatalogItems(@RequestParam(required = false) Status status, Pageable pageable) {
+        return catalogService.findCatalogItems(status, pageable);
     }
 
     @GetMapping("/{id:\\d+}")
@@ -38,14 +39,14 @@ public class CatalogController {
         return catalogService.activateCatalogItem(id);
     }
 
-    @PatchMapping("/{id}/deactivate")
+    @PatchMapping("/{id:\\d+}/deactivate")
     public CatalogDTO deactivateCatalogItem(@PathVariable Long id) {
         return catalogService.deactivateCatalogItem(id);
     }
 
-    @DeleteMapping("/{id}/delete")
+    @DeleteMapping("/{id:\\d+}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public CatalogDTO deleteCatalogItem(@PathVariable Long id) {
-        return catalogService.deleteCatalogItem(id);
+    public void deleteCatalogItem(@PathVariable Long id) {
+        catalogService.deleteCatalogItem(id);
     }
 }

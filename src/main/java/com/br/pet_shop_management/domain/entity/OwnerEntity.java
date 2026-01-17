@@ -1,6 +1,6 @@
 package com.br.pet_shop_management.domain.entity;
 
-import com.br.pet_shop_management.domain.enums.OwnerStatus;
+import com.br.pet_shop_management.domain.enums.Status;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,9 +30,9 @@ public class OwnerEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OwnerStatus status;
+    private Status status;
 
-    public OwnerEntity(String name, String cpf, String phone, String email, String address, OwnerStatus status) {
+    public OwnerEntity(String name, String cpf, String phone, String email, String address, Status status) {
         this.name = name;
         this.cpf = cpf;
         this.phone = phone;
@@ -42,11 +42,11 @@ public class OwnerEntity {
     }
 
     public void deactivate() {
-        this.status = OwnerStatus.INACTIVE;
+        this.status = Status.INACTIVE;
     }
 
     public void activate() {
-        this.status = OwnerStatus.ACTIVE;
+        this.status = Status.ACTIVE;
     }
 
     public void updateContactInfo(String phone, String email, String address) {

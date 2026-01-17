@@ -1,5 +1,7 @@
 package com.br.pet_shop_management.api.dto.response;
 
+import com.br.pet_shop_management.domain.enums.Status;
+
 import java.math.BigDecimal;
 
 public record CatalogDTO(Long id,
@@ -9,5 +11,5 @@ public record CatalogDTO(Long id,
                          BigDecimal priceSmall,
                          BigDecimal priceMedium,
                          BigDecimal priceLarge,
-                         Boolean active) {
+                         Status status) {
 }

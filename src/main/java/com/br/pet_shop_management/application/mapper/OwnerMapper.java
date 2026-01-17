@@ -3,7 +3,7 @@ package com.br.pet_shop_management.application.mapper;
 import com.br.pet_shop_management.api.dto.response.OwnerDTO;
 import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
-import com.br.pet_shop_management.domain.enums.OwnerStatus;
+import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.util.CpfUtils;
 import com.br.pet_shop_management.util.PhoneUtils;
 
@@ -26,7 +26,7 @@ public final class OwnerMapper {
         );
     }
 
-    public static OwnerEntity toEntity(OwnerForm form, String normalizedCpf, String normalizedPhone, OwnerStatus ownerStatus) {
+    public static OwnerEntity toEntity(OwnerForm form, String normalizedCpf, String normalizedPhone, Status ownerStatus) {
         return new OwnerEntity(
                 form.name(),
                 normalizedCpf,
