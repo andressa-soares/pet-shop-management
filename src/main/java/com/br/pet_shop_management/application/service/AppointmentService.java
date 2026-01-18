@@ -151,6 +151,30 @@ public class AppointmentService {
     }
 
     @Transactional
+    public AppointmentDTO startAppointment(Long id) {
+        AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(id)
+                .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
+
+        if (appointment.isCanceled()) {
+            throw new BusinessException("Canceled appointments cannot be started.");
+        }
+        if (appointment.isLocked()) {
+            throw new BusinessException("Appointments waiting for payment or completed cannot be started.");
+        }
+
+        try {
+            appointment.start();
+        } catch (IllegalStateException e) {
+            throw new BusinessException(e.getMessage());
+        }
+
+        AppointmentEntity updated = appointmentRepository.save(appointment);
+        List<AppointmentItemEntity> items = appointmentItemRepository.findByAppointmentId(id);
+
+        return AppointmentMapper.toDTO(updated, items);
+    }
+
+    @Transactional
     public AppointmentDTO closeForPayment(Long id) {
         AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));

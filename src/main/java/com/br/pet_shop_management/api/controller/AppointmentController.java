@@ -44,6 +44,11 @@ public class AppointmentController {
         return appointmentService.addAppointmentItems(id, items);
     }
 
+    @PatchMapping("/{id:\\d+}/start")
+    public AppointmentDTO start(@PathVariable Long id) {
+        return appointmentService.startAppointment(id);
+    }
+
     @PatchMapping("/{id:\\d+}/close")
     public AppointmentDTO closeForPayment(@PathVariable Long id) {
         return appointmentService.closeForPayment(id);
