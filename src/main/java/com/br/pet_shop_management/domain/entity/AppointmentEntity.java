@@ -19,6 +19,9 @@ public class AppointmentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private OwnerEntity owner;
@@ -47,6 +50,13 @@ public class AppointmentEntity {
         this.totalGross = MoneyUtils.zero();
     }
 
+    public void start() {
+        if (this.status != AppointmentStatus.SCHEDULED) {
+            throw new IllegalStateException("Only SCHEDULED appointments can start.");
+        }
+        this.status = AppointmentStatus.IN_PROGRESS;
+    }
+
     public boolean isLocked() {
         return this.status == AppointmentStatus.WAITING_PAYMENT || this.status == AppointmentStatus.COMPLETED;
     }
@@ -56,28 +66,47 @@ public class AppointmentEntity {
     }
 
     public void updateTotalGross(BigDecimal totalGross) {
-        this.totalGross = totalGross;
+        if (isLocked()) {
+            throw new IllegalStateException("Cannot change totalGross when appointment is locked.");
+        }
+        if (totalGross == null) {
+            throw new IllegalArgumentException("totalGross must be provided.");
+        }
+        if (totalGross.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("totalGross cannot be negative.");
+        }
+        this.totalGross = MoneyUtils.scale(totalGross);
     }
 
     public void cancel() {
-        if (this.status == AppointmentStatus.WAITING_PAYMENT) {
-            throw new IllegalStateException("Appointments waiting for payment cannot be canceled.");
+        if (this.status != AppointmentStatus.SCHEDULED && this.status != AppointmentStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Appointment can only be canceled when SCHEDULED or IN_PROGRESS.");
         }
-        if (this.status == AppointmentStatus.COMPLETED) {
-            throw new IllegalStateException("Completed appointments cannot be canceled.");
-        }
-        if (this.status == AppointmentStatus.CANCELED) {
-            throw new IllegalStateException("Appointment is already canceled.");
-        }
-
         this.status = AppointmentStatus.CANCELED;
     }
 
     public void closeForPayment(LocalDateTime now) {
-        if (this.status == AppointmentStatus.CANCELED) {
-            throw new IllegalStateException("Canceled appointments cannot be closed for payment.");
+        if (now == null) throw new IllegalArgumentException("now must be provided.");
+
+        if (this.status != AppointmentStatus.SCHEDULED && this.status != AppointmentStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Only SCHEDULED or IN_PROGRESS appointments can be closed for payment.");
         }
+        if (this.closedAt != null) {
+            throw new IllegalStateException("Appointment is already closed for payment.");
+        }
+        if (this.totalGross == null || this.totalGross.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Appointment must have items (totalGross > 0) to close for payment.");
+        }
+
         this.status = AppointmentStatus.WAITING_PAYMENT;
         this.closedAt = now;
+    }
+
+    public void complete() {
+        if (this.status != AppointmentStatus.WAITING_PAYMENT) {
+            throw new IllegalStateException("Appointment must be waiting for payment to be completed.");
+        }
+
+        this.status = AppointmentStatus.COMPLETED;
     }
 }

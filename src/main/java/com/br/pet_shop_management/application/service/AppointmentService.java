@@ -1,6 +1,5 @@
 package com.br.pet_shop_management.application.service;
 
-import com.br.pet_shop_management.domain.enums.AppointmentStatus;
 import org.springframework.transaction.annotation.Transactional;
 import com.br.pet_shop_management.api.dto.request.AppointmentForm;
 import com.br.pet_shop_management.api.dto.request.AppointmentItemForm;
@@ -76,7 +75,7 @@ public class AppointmentService {
             throw new BusinessException("At least one service item must be provided.");
         }
 
-        AppointmentEntity appointment = appointmentRepository.findDetailedById(appointmentId)
+        AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
 
         if (appointment.isCanceled()) {
@@ -121,7 +120,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDTO closeForPayment(Long id) {
-        AppointmentEntity appointment = appointmentRepository.findDetailedById(id)
+        AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
 
         if (appointment.isLocked()) {
@@ -141,7 +140,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentDTO cancelAppointment(Long id) {
-        AppointmentEntity appointment = appointmentRepository.findDetailedById(id)
+        AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
 
         if (appointment.getOwner().getStatus() == Status.INACTIVE) {
@@ -178,9 +177,7 @@ public class AppointmentService {
                 throw new BusinessException("Invalid catalog price for pet size.");
             }
 
-            BigDecimal subtotal = MoneyUtils.scale(unitPrice.multiply(BigDecimal.valueOf(itemForm.quantity())));
-
-            return new AppointmentItemEntity(appointment, catalog, itemForm.quantity(), unitPrice, subtotal);
+            return AppointmentItemEntity.create(appointment, catalog, itemForm.quantity(), unitPrice);
         }).toList();
     }
 }
