@@ -80,7 +80,6 @@ public class PaymentService {
             return installments;
         }
 
-        // PIX/CASH: forçar 1
         return 1;
     }
 
@@ -95,7 +94,6 @@ public class PaymentService {
             return MoneyUtils.scale(gross.multiply(new BigDecimal("0.95")));
         }
 
-        // CARD
         if (installments <= 2) {
             return MoneyUtils.scale(gross);
         }
