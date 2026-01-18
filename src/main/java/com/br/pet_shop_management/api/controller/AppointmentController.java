@@ -6,6 +6,8 @@ import com.br.pet_shop_management.api.dto.response.AppointmentDTO;
 import com.br.pet_shop_management.application.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,11 @@ public class AppointmentController {
     @GetMapping("/{id:\\d+}")
     public AppointmentDTO findById(@PathVariable Long id) {
         return appointmentService.findById(id);
+    }
+
+    @GetMapping("/future")
+    public Page<AppointmentDTO> listFutureAppointments(Pageable pageable) {
+        return appointmentService.listFutureAppointments(pageable);
     }
 
     @PostMapping

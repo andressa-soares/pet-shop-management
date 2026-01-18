@@ -1,5 +1,7 @@
 package com.br.pet_shop_management.application.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import com.br.pet_shop_management.api.dto.request.AppointmentForm;
 import com.br.pet_shop_management.api.dto.request.AppointmentItemForm;
@@ -116,6 +118,26 @@ public class AppointmentService {
 
         List<AppointmentItemEntity> items = appointmentItemRepository.findByAppointmentId(id);
         return AppointmentMapper.toDTO(appointment, items);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppointmentDTO> listFutureAppointments(Pageable pageable) {
+        Page<AppointmentEntity> page = appointmentRepository.findFutureActive(LocalDateTime.now(), pageable);
+
+        if (page.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Long> ids = page.getContent().stream()
+                .map(AppointmentEntity::getId)
+                .toList();
+
+        List<AppointmentItemEntity> items = appointmentItemRepository.findByAppointmentIdIn(ids);
+
+        java.util.Map<Long, List<AppointmentItemEntity>> itemsByAppointmentId =
+                items.stream().collect(java.util.stream.Collectors.groupingBy(i -> i.getAppointment().getId()));
+
+        return page.map(a -> AppointmentMapper.toDTO(a, itemsByAppointmentId.getOrDefault(a.getId(), List.of())));
     }
 
     @Transactional
