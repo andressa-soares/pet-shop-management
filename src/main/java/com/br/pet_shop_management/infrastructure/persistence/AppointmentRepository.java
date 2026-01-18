@@ -31,6 +31,7 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
     Page<AppointmentEntity> findFutureByStatuses(
             @Param("now") LocalDateTime now,
             @Param("statuses") List<AppointmentStatus> statuses,
-            Pageable pageable
-    );
+            Pageable pageable);
+
+    boolean existsByPetIdAndScheduledAtAndStatusIn(Long petId, LocalDateTime scheduledAt, List<AppointmentStatus> statuses);
 }

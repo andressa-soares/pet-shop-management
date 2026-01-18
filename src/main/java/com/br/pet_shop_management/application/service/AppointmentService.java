@@ -55,6 +55,18 @@ public class AppointmentService {
             throw new BusinessException("At least one service item must be provided.");
         }
 
+        List<AppointmentStatus> activeStatuses = List.of(AppointmentStatus.SCHEDULED,
+                                                         AppointmentStatus.IN_PROGRESS,
+                                                         AppointmentStatus.WAITING_PAYMENT);
+
+        boolean hasConflict = appointmentRepository.existsByPetIdAndScheduledAtAndStatusIn(pet.getId(),
+                                                                                           form.scheduledAt(),
+                                                                                           activeStatuses);
+
+        if (hasConflict) {
+            throw new BusinessException("This pet already has an appointment scheduled for the same date/time.");
+        }
+
         AppointmentEntity appointment = new AppointmentEntity(owner, pet, form.scheduledAt());
         AppointmentEntity savedAppointment = appointmentRepository.save(appointment);
 
