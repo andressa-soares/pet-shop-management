@@ -10,7 +10,7 @@ public final class PetMapper {
 
     public static PetDTO toDTO(PetEntity entity) {
         if (entity == null) {
-            throw new IllegalArgumentException("PetEntity must not be null");
+            throw new IllegalArgumentException("PetEntity must not be null.");
         }
 
         Long ownerId = entity.getOwner() != null ? entity.getOwner().getId() : null;

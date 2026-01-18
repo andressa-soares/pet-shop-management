@@ -12,7 +12,7 @@ public final class AppointmentMapper {
 
     public static AppointmentDTO toDTO(AppointmentEntity appointment, List<AppointmentItemEntity> items) {
         if (appointment == null) {
-            throw new IllegalArgumentException("AppointmentEntity must not be null");
+            throw new IllegalArgumentException("AppointmentEntity must not be null.");
         }
 
         List<AppointmentItemDTO> itemDTOs = items == null ? List.of() : items.stream()
@@ -32,7 +32,7 @@ public final class AppointmentMapper {
 
     public static AppointmentItemDTO toItemDTO(AppointmentItemEntity item) {
         if (item == null) {
-            throw new IllegalArgumentException("AppointmentItemEntity must not be null");
+            throw new IllegalArgumentException("AppointmentItemEntity must not be null.");
         }
 
         return new AppointmentItemDTO(

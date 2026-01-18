@@ -12,7 +12,7 @@ public final class OwnerMapper {
 
     public static OwnerDTO toDTO(OwnerEntity entity) {
         if (entity == null) {
-            throw new IllegalArgumentException("OwnerEntity must not be null");
+            throw new IllegalArgumentException("OwnerEntity must not be null.");
         }
 
         return new OwnerDTO(
