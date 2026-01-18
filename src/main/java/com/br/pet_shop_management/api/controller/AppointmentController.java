@@ -4,6 +4,7 @@ import com.br.pet_shop_management.api.dto.request.AppointmentForm;
 import com.br.pet_shop_management.api.dto.request.AppointmentItemForm;
 import com.br.pet_shop_management.api.dto.response.AppointmentDTO;
 import com.br.pet_shop_management.application.service.AppointmentService;
+import com.br.pet_shop_management.domain.enums.AppointmentStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,8 +27,10 @@ public class AppointmentController {
     }
 
     @GetMapping("/future")
-    public Page<AppointmentDTO> listFutureAppointments(Pageable pageable) {
-        return appointmentService.listFutureAppointments(pageable);
+    public Page<AppointmentDTO> listFutureAppointments(
+            @RequestParam(required = false) AppointmentStatus status,
+            Pageable pageable) {
+        return appointmentService.listFutureAppointments(status, pageable);
     }
 
     @PostMapping

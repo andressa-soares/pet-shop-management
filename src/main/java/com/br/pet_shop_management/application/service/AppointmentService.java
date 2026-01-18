@@ -1,5 +1,6 @@
 package com.br.pet_shop_management.application.service;
 
+import com.br.pet_shop_management.domain.enums.AppointmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,17 +122,26 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AppointmentDTO> listFutureAppointments(Pageable pageable) {
-        Page<AppointmentEntity> page = appointmentRepository.findFutureActive(LocalDateTime.now(), pageable);
+    public Page<AppointmentDTO> listFutureAppointments(AppointmentStatus status, Pageable pageable) {
+        List<AppointmentStatus> statuses;
+
+        if (status == null) {
+            statuses = List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.IN_PROGRESS, AppointmentStatus.WAITING_PAYMENT);
+        } else {
+            if (status == AppointmentStatus.CANCELED || status == AppointmentStatus.COMPLETED) {
+                throw new BusinessException("Status filter must be an active status for future appointments.");
+            }
+            statuses = List.of(status);
+        }
+
+        Page<AppointmentEntity> page =
+                appointmentRepository.findFutureByStatuses(LocalDateTime.now(), statuses, pageable);
 
         if (page.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        List<Long> ids = page.getContent().stream()
-                .map(AppointmentEntity::getId)
-                .toList();
-
+        List<Long> ids = page.getContent().stream().map(AppointmentEntity::getId).toList();
         List<AppointmentItemEntity> items = appointmentItemRepository.findByAppointmentIdIn(ids);
 
         java.util.Map<Long, List<AppointmentItemEntity>> itemsByAppointmentId =
