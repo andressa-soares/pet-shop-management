@@ -1,227 +1,250 @@
-# Pet Shop Management API
+# Pet Shop Management API (MVP)
 
-## Descrição
+API REST para **gestão operacional de um Pet Shop**, focada em atendimento presencial, com **regras de negócio explícitas**, **transições de estado controladas** e **preservação de histórico financeiro**.
 
-Este projeto é uma **API REST para gestão de Pet Shop**, desenvolvida como **projeto de portfólio com foco em back-end e regras de negócio**, e não apenas em operações CRUD.
+Este projeto foi desenvolvido com foco em **portfólio back-end**, priorizando clareza de domínio, consistência de API e comportamento previsível sob regras reais — indo além de um CRUD básico.
 
-O sistema modela um fluxo **presencial e determinístico de atendimento**, cobrindo desde o cadastro básico até o fechamento financeiro, com preocupação explícita em:
-- Estados de domínio
-- Integridade de dados
-- Rastreabilidade financeira
-- Controle de concorrência
-
-O projeto **não possui integrações externas de pagamento** e foi pensado como um MVP técnico para estudo e demonstração de conceitos de back-end.
+Repositório:  
+https://github.com/andressa-soares/pet-shop-management
 
 ---
 
-## Principais Funcionalidades
+## Stack e tecnologias
 
-### Cadastro e Gestão
-- Clientes (Owners)
-- Pets (vinculados a clientes)
-- Catálogo de serviços com preços por porte do pet
-
-### Atendimento (Appointment)
-- Criação de atendimentos com data/hora agendada
-- Inclusão de múltiplos serviços
-- Controle explícito de status:
-  - `SCHEDULED`
-  - `IN_PROGRESS`
-  - `WAITING_PAYMENT`
-  - `COMPLETED`
-  - `CANCELED`
-- Bloqueio de alterações após fechamento para pagamento
-
-### Pagamento
-- Pagamento presencial
-- Regras por método:
-  - **PIX / CASH**: desconto fixo de 5%
-  - **CARD**:
-    - até 2 parcelas: sem juros
-    - 3 a 6 parcelas: juros configuráveis por parcela adicional
-- Pagamento aprovado conclui automaticamente o atendimento
-- Valores financeiros arredondados com `HALF_UP`
+- **Java**
+- **Spring Boot**
+- **Spring Data JPA / Hibernate**
+- **API REST**
+- **Swagger / OpenAPI (springdoc)**
+- **Docker & Docker Compose**
+- **Bean Validation**
+- **Controle de concorrência**
+  - `@Version` (optimistic locking)
+  - `PESSIMISTIC_WRITE` em operações críticas
+- **Tratamento global de erros** (`@RestControllerAdvice`)
 
 ---
 
-## Tecnologias Utilizadas
+## Domínio e regras principais
 
-- Java 17
-- Spring Boot
-- Spring Data JPA / Hibernate
-- Bean Validation
-- API REST
-- Swagger / OpenAPI
-- Docker
-- Docker Compose
-- Banco de dados relacional (via container)
+### Entidades
 
----
+- **Owner**  
+  Cliente responsável pelo pet. Pode ser ativado ou inativado, respeitando regras de negócio.
 
-## Arquitetura e Organização
+- **Pet**  
+  Vinculado a um Owner.  
+  O **porte (size)** é imutável, pois impacta diretamente a precificação dos serviços.
 
-O projeto segue uma separação clara de responsabilidades:
+- **Catalog**  
+  Serviços oferecidos pelo pet shop.  
+  Cada serviço possui **preço por porte** (SMALL, MEDIUM, LARGE).
 
-```
-src
- ├── api
- │   ├── controller
- │   ├── dto
- │   └── exception
- ├── application
- │   ├── service
- │   ├── mapper
- │   └── exception
- ├── domain
- │   ├── entity
- │   ├── enums
- │   └── pricing
- ├── infrastructure
- │   ├── persistence
- │   └── config
- └── util
-```
+- **Appointment**  
+  Atendimento/agendamento.  
+  Possui itens, total bruto e **workflow de estados** bem definido.
 
-### Princípios adotados
-- Regras de negócio concentradas no domínio e services
-- Entidades com comportamento (não apenas setters/getters)
-- Transações explícitas em operações críticas
-- Uso de lock pessimista e controle de versão (`@Version`) para concorrência
-- Tratamento global e padronizado de erros HTTP
+- **Payment**  
+  Pagamento presencial do atendimento, com regras específicas por forma de pagamento.
 
 ---
 
-## Endpoints Principais
+## Workflow do Appointment
 
-### Owners (Clientes)
+Estados possíveis:
+
+- `SCHEDULED`
+- `IN_PROGRESS`
+- `WAITING_PAYMENT`
+- `COMPLETED`
+- `CANCELED`
+
+Regras importantes:
+- Não é possível alterar itens após `WAITING_PAYMENT`
+- Atendimentos cancelados não podem ser retomados
+- Pagamento só é permitido em `WAITING_PAYMENT`
+- Cada atendimento possui **apenas um pagamento final**
+
+---
+
+## Padrão de API adotado
+
+### Atualizações parciais
+- `PATCH /resource/{id}`  
+  Usado para atualização de campos comuns.
+
+### Transições de estado (workflow)
+- `POST /resource/{id}/actions`  
+
+O corpo da requisição define a ação desejada:
+```json
+{ "action": "..." }
 ```
-GET    /owners
-GET    /owners/{id}
-GET    /owners/cpf/{cpf}
-POST   /owners
-PATCH  /owners/{cpf}/activate
-PATCH  /owners/{cpf}/deactivate
-PATCH  /owners/{cpf}/update
+
+Esse padrão evita múltiplas rotas como `/start`, `/cancel`, `/activate`, garantindo **consistência e clareza**.
+
+---
+
+## Endpoints
+
+### Owners
+- `GET /owners`
+- `GET /owners/{id}`
+- `GET /owners/cpf/{cpf}`
+- `POST /owners`
+- `PATCH /owners/{cpf}`
+- `POST /owners/{cpf}/actions`
+
+Ações possíveis:
+```json
+{ "action": "ACTIVATE" }
 ```
+```json
+{ "action": "DEACTIVATE" }
+```
+
+---
 
 ### Pets
-```
-GET    /pets
-GET    /pets/{id}
-POST   /pets
-PATCH  /pets/{id}
-DELETE /pets/{id}
-```
+- `GET /pets?species=&breed=&ownerId=`
+- `GET /pets/{id}`
+- `GET /pets/breeds?species=DOG|CAT`
+- `POST /pets`
+- `PATCH /pets/{id}`
+- `DELETE /pets/{id}`
 
-### Catálogo de Serviços
-```
-GET    /catalog
-GET    /catalog/{id}
-POST   /catalog
-PATCH  /catalog/{id}/activate
-PATCH  /catalog/{id}/deactivate
-DELETE /catalog/{id}
-```
-
-### Atendimentos
-```
-GET    /appointments/{id}
-GET    /appointments/future
-GET    /appointments/history
-POST   /appointments
-POST   /appointments/{id}/items
-PATCH  /appointments/{id}/start
-PATCH  /appointments/{id}/close
-PATCH  /appointments/{id}/cancel
-```
-
-### Pagamentos
-```
-POST /appointments/{appointmentId}/payments
+Exemplo de PATCH:
+```json
+{
+  "notes": "Pet agressivo com outros animais",
+  "allergies": "Alergia a shampoo X"
+}
 ```
 
 ---
 
-## Documentação da API (Swagger)
+### Catalog
+- `GET /catalog?status=ACTIVE|INACTIVE`
+- `GET /catalog/{id}`
+- `POST /catalog`
+- `POST /catalog/{id}/actions`
+- `DELETE /catalog/{id}`
 
-Após subir a aplicação, a documentação completa dos endpoints pode ser acessada em:
+Ações:
+```json
+{ "action": "ACTIVATE" }
+```
+```json
+{ "action": "DEACTIVATE" }
+```
+
+---
+
+### Appointments
+- `GET /appointments/{id}`
+- `GET /appointments/future`
+- `GET /appointments/history`
+- `POST /appointments`
+- `POST /appointments/{id}/items`
+- `POST /appointments/{id}/actions`
+
+Ações:
+```json
+{ "action": "START" }
+```
+```json
+{ "action": "CLOSE_FOR_PAYMENT" }
+```
+```json
+{ "action": "CANCEL" }
+```
+
+---
+
+### Payments
+- `POST /appointments/{appointmentId}/payments`
+
+Exemplos:
+```json
+{ "method": "PIX" }
+```
+```json
+{ "method": "CASH" }
+```
+```json
+{ "method": "CARD", "installments": 3 }
+```
+
+---
+
+## Tratamento de erros (HTTP)
+
+- **400 Bad Request**  
+  Entrada inválida (payload, parâmetros, pré-condições de request)
+
+- **409 Conflict**  
+  Violação de regra de negócio ou conflito de estado
+
+- **404 Not Found**  
+  Recurso inexistente
+
+- **500 Internal Server Error**  
+  Erro inesperado
+
+Todas as respostas seguem um formato padronizado:
+```json
+{
+  "status": 409,
+  "error": "CONFLICT",
+  "message": "Appointment is already waiting for payment.",
+  "path": "/appointments/10/actions",
+  "timestamp": "2026-01-18T14:32:00Z"
+}
+```
+
+---
+
+## Swagger / OpenAPI
+
+A documentação interativa da API pode ser acessada em:
 
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
 
+O OpenAPI JSON:
+```
+http://localhost:8080/v3/api-docs
+```
+
 ---
 
-## Como Executar o Projeto com Docker
+## Executando com Docker
 
 ### Pré-requisitos
 - Docker
 - Docker Compose
 
 ### Subir a aplicação
+```bash
+docker compose up -d
+```
 
-Na raiz do projeto:
-
+### Derrubar e reconstruir
 ```bash
 docker compose down -v
 docker build --no-cache -t pet-shop-management .
 docker compose up -d
 ```
 
-A aplicação ficará disponível em:
-
-```
-http://localhost:8080
-```
-
 ---
 
-## Tratamento de Erros
+## Considerações finais
 
-A API possui um **handler global de exceções**, retornando respostas padronizadas no formato:
+Este projeto foi construído com foco em:
+- Clareza de domínio
+- Consistência de API
+- Regras de negócio explícitas
+- Evolução incremental
 
-```json
-{
-  "status": 409,
-  "error": "CONFLICT",
-  "message": "Business rule violation message",
-  "path": "/appointments/1/close",
-  "timestamp": "2026-01-01T12:00:00Z"
-}
-```
-
-Códigos utilizados:
-- `400` – Erro de validação / requisição inválida
-- `404` – Recurso não encontrado
-- `409` – Violação de regra de negócio
-- `500` – Erro interno inesperado
-
----
-
-## Limitações Conhecidas (MVP)
-
-Este projeto é um MVP e possui limitações intencionais:
-- Conflito de agenda validado apenas por data/hora exata
-- Pagamento não integra com gateways externos
-- Exclusões físicas ainda existentes para algumas entidades
-- Idempotência de pagamento não implementada
-
-Esses pontos foram mantidos fora do escopo para preservar simplicidade e foco didático.
-
----
-
-## Objetivo do Projeto
-
-Este projeto foi desenvolvido como **primeiro projeto back-end robusto**, com foco em:
-- Modelagem de domínio
-- Fluxo de negócio
-- Consistência de dados
-- Aprendizado prático de arquitetura back-end
-
-Ele **não se propõe a ser um sistema pronto para produção**, mas sim um estudo aplicado e evolutivo.
-
----
-
-## Autor
-
-Projeto desenvolvido por Andressa Soares para fins de estudo e portfólio.
+Ele continuará sendo aprimorado com novos ajustes arquiteturais e refinamentos de regras, mantendo sempre o compromisso com **simplicidade, previsibilidade e intenção técnica clara**.
