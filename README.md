@@ -90,7 +90,7 @@ Esse padrão evita múltiplas rotas como `/start`, `/cancel`, `/activate`, garan
 ### Owners
 - `GET /owners`
 - `GET /owners/{id}`
-- `GET /owners/cpf/{cpf}`
+- `GET /owners/{cpf}`
 - `POST /owners`
 - `PATCH /owners/{cpf}`
 - `POST /owners/{cpf}/actions`
