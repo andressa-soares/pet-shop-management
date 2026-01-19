@@ -27,10 +27,13 @@ public class AppointmentController {
     }
 
     @GetMapping("/future")
-    public Page<AppointmentDTO> listFutureAppointments(
-            @RequestParam(required = false) AppointmentStatus status,
-            Pageable pageable) {
+    public Page<AppointmentDTO> listFutureAppointments(@RequestParam(required = false) AppointmentStatus status, Pageable pageable) {
         return appointmentService.listFutureAppointments(status, pageable);
+    }
+
+    @GetMapping("/history")
+    public Page<AppointmentDTO> listHistory(@RequestParam(required = false) AppointmentStatus status, Pageable pageable) {
+        return appointmentService.listHistory(status, pageable);
     }
 
     @PostMapping

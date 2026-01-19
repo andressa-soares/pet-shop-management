@@ -33,6 +33,15 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             @Param("statuses") List<AppointmentStatus> statuses,
             Pageable pageable);
 
+    @EntityGraph(attributePaths = {"owner", "pet"})
+    @Query("""
+    select a from AppointmentEntity a where a.scheduledAt < :now
+      and a.status in :statuses order by a.scheduledAt desc""")
+    Page<AppointmentEntity> findHistoryByStatuses(
+            @Param("now") LocalDateTime now,
+            @Param("statuses") List<AppointmentStatus> statuses,
+            Pageable pageable);
+
     boolean existsByPetIdAndScheduledAtAndStatusIn(Long petId, LocalDateTime scheduledAt, List<AppointmentStatus> statuses);
     boolean existsByOwnerIdAndStatusIn(Long ownerId, List<AppointmentStatus> statuses);
 }

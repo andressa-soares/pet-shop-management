@@ -162,6 +162,30 @@ public class AppointmentService {
         return page.map(a -> AppointmentMapper.toDTO(a, itemsByAppointmentId.getOrDefault(a.getId(), List.of())));
     }
 
+    @Transactional(readOnly = true)
+    public Page<AppointmentDTO> listHistory(AppointmentStatus status, Pageable pageable) {
+        List<AppointmentStatus> statuses = (status == null)
+                ? List.of(AppointmentStatus.values())
+                : List.of(status);
+
+        Page<AppointmentEntity> page = appointmentRepository.findHistoryByStatuses(LocalDateTime.now(), statuses, pageable);
+
+        if (page.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Long> ids = page.getContent().stream()
+                .map(AppointmentEntity::getId)
+                .toList();
+
+        List<AppointmentItemEntity> items = appointmentItemRepository.findByAppointmentIdIn(ids);
+
+        java.util.Map<Long, List<AppointmentItemEntity>> itemsByAppointmentId =
+                items.stream().collect(java.util.stream.Collectors.groupingBy(i -> i.getAppointment().getId()));
+
+        return page.map(a -> AppointmentMapper.toDTO(a, itemsByAppointmentId.getOrDefault(a.getId(), List.of())));
+    }
+
     @Transactional
     public AppointmentDTO startAppointment(Long id) {
         AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(id)
