@@ -1,165 +1,227 @@
 # Pet Shop Management API
 
-REST API developed in **Java with Spring Boot** to manage clients in a pet shop system.  
-The project is focused on clean architecture, clear business rules, and a production-ready setup using **Docker**.
+## Descrição
+
+Este projeto é uma **API REST para gestão de Pet Shop**, desenvolvida como **projeto de portfólio com foco em back-end e regras de negócio**, e não apenas em operações CRUD.
+
+O sistema modela um fluxo **presencial e determinístico de atendimento**, cobrindo desde o cadastro básico até o fechamento financeiro, com preocupação explícita em:
+- Estados de domínio
+- Integridade de dados
+- Rastreabilidade financeira
+- Controle de concorrência
+
+O projeto **não possui integrações externas de pagamento** e foi pensado como um MVP técnico para estudo e demonstração de conceitos de back-end.
 
 ---
 
-## 📌 Pre-requisites
+## Principais Funcionalidades
 
-To run this project you need:
+### Cadastro e Gestão
+- Clientes (Owners)
+- Pets (vinculados a clientes)
+- Catálogo de serviços com preços por porte do pet
 
-- **Docker**
-- **Docker Compose**
+### Atendimento (Appointment)
+- Criação de atendimentos com data/hora agendada
+- Inclusão de múltiplos serviços
+- Controle explícito de status:
+  - `SCHEDULED`
+  - `IN_PROGRESS`
+  - `WAITING_PAYMENT`
+  - `COMPLETED`
+  - `CANCELED`
+- Bloqueio de alterações após fechamento para pagamento
 
-> No local Java or Maven installation is required when running with Docker.
+### Pagamento
+- Pagamento presencial
+- Regras por método:
+  - **PIX / CASH**: desconto fixo de 5%
+  - **CARD**:
+    - até 2 parcelas: sem juros
+    - 3 a 6 parcelas: juros configuráveis por parcela adicional
+- Pagamento aprovado conclui automaticamente o atendimento
+- Valores financeiros arredondados com `HALF_UP`
 
 ---
 
-## ▶️ Running the Project with Docker
+## Tecnologias Utilizadas
 
-From the project root directory:
+- Java 17
+- Spring Boot
+- Spring Data JPA / Hibernate
+- Bean Validation
+- API REST
+- Swagger / OpenAPI
+- Docker
+- Docker Compose
+- Banco de dados relacional (via container)
 
-```bash
-docker compose up -d --build
+---
+
+## Arquitetura e Organização
+
+O projeto segue uma separação clara de responsabilidades:
+
+```
+src
+ ├── api
+ │   ├── controller
+ │   ├── dto
+ │   └── exception
+ ├── application
+ │   ├── service
+ │   ├── mapper
+ │   └── exception
+ ├── domain
+ │   ├── entity
+ │   ├── enums
+ │   └── pricing
+ ├── infrastructure
+ │   ├── persistence
+ │   └── config
+ └── util
 ```
 
-This command will:
-- Build the API image
-- Start the PostgreSQL database
-- Start the Spring Boot application
-
-### Services & Ports
-
-| Service | Port |
-|------|------|
-| API | `8080` |
-| PostgreSQL | `5432` |
+### Princípios adotados
+- Regras de negócio concentradas no domínio e services
+- Entidades com comportamento (não apenas setters/getters)
+- Transações explícitas em operações críticas
+- Uso de lock pessimista e controle de versão (`@Version`) para concorrência
+- Tratamento global e padronizado de erros HTTP
 
 ---
 
-## 🗄️ Database Configuration
+## Endpoints Principais
 
-The application uses **PostgreSQL**.
+### Owners (Clientes)
+```
+GET    /owners
+GET    /owners/{id}
+GET    /owners/cpf/{cpf}
+POST   /owners
+PATCH  /owners/{cpf}/activate
+PATCH  /owners/{cpf}/deactivate
+PATCH  /owners/{cpf}/update
+```
 
-When running with Docker, the database connection is configured via environment variables:
+### Pets
+```
+GET    /pets
+GET    /pets/{id}
+POST   /pets
+PATCH  /pets/{id}
+DELETE /pets/{id}
+```
 
-- **Host:** `postgres` (Docker service name)
-- **Port:** `5432`
-- **Database:** `petshop`
-- **User:** `petshop_user`
-- **Password:** `petshop_pass`
+### Catálogo de Serviços
+```
+GET    /catalog
+GET    /catalog/{id}
+POST   /catalog
+PATCH  /catalog/{id}/activate
+PATCH  /catalog/{id}/deactivate
+DELETE /catalog/{id}
+```
 
-Data is persisted using a Docker volume, so it is not lost when containers restart.
+### Atendimentos
+```
+GET    /appointments/{id}
+GET    /appointments/future
+GET    /appointments/history
+POST   /appointments
+POST   /appointments/{id}/items
+PATCH  /appointments/{id}/start
+PATCH  /appointments/{id}/close
+PATCH  /appointments/{id}/cancel
+```
+
+### Pagamentos
+```
+POST /appointments/{appointmentId}/payments
+```
 
 ---
 
-## 📚 Swagger / OpenAPI Documentation
+## Documentação da API (Swagger)
 
-The API is documented using **Swagger (OpenAPI)**.
-
-After starting the application, access:
+Após subir a aplicação, a documentação completa dos endpoints pode ser acessada em:
 
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
 
-Swagger UI allows you to:
-- View all available endpoints
-- Inspect request/response models
-- Execute requests directly from the browser
-
-The OpenAPI specification is available at:
-
-```
-http://localhost:8080/v3/api-docs
-```
-
 ---
 
-## 🔗 Available Endpoints
+## Como Executar o Projeto com Docker
 
-### Clients
+### Pré-requisitos
+- Docker
+- Docker Compose
 
-| Method | Endpoint | Description |
-|------|--------|------------|
-| GET | `/clients` | List all active clients |
-| GET | `/clients/{id}` | Get client by ID |
-| GET | `/clients/{cpf}` | Get client by CPF |
-| POST | `/clients` | Create a new client |
-| PATCH | `/clients/{cpf}` | Update client contact info |
-| DELETE | `/clients/{cpf}` | Inactivate (soft delete) client |
-| PATCH | `/clients/{cpf}/activate` | Reactivate an inactive client |
+### Subir a aplicação
 
----
+Na raiz do projeto:
 
-## 📎 Example cURL Requests
-
-### Create a Client
 ```bash
-curl -X POST http://localhost:8080/clients \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "cpf": "12345678909",
-    "phone": "(11) 91234-5678",
-    "email": "john.doe@email.com",
-    "address": "Main Street, 123"
-  }'
+docker compose down -v
+docker build --no-cache -t pet-shop-management .
+docker compose up -d
+```
+
+A aplicação ficará disponível em:
+
+```
+http://localhost:8080
 ```
 
 ---
 
-### List Active Clients
-```bash
-curl http://localhost:8080/clients
+## Tratamento de Erros
+
+A API possui um **handler global de exceções**, retornando respostas padronizadas no formato:
+
+```json
+{
+  "status": 409,
+  "error": "CONFLICT",
+  "message": "Business rule violation message",
+  "path": "/appointments/1/close",
+  "timestamp": "2026-01-01T12:00:00Z"
+}
 ```
 
----
-
-### Get Client by CPF
-```bash
-curl http://localhost:8080/clients/12345678909
-```
-
----
-
-### Update Client Contact Info (PATCH)
-```bash
-curl -X PATCH http://localhost:8080/clients/12345678909 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "new.email@email.com",
-    "address": "New Address, 456"
-  }'
-```
+Códigos utilizados:
+- `400` – Erro de validação / requisição inválida
+- `404` – Recurso não encontrado
+- `409` – Violação de regra de negócio
+- `500` – Erro interno inesperado
 
 ---
 
-### Inactivate Client (Soft Delete)
-```bash
-curl -X DELETE http://localhost:8080/clients/12345678909
-```
+## Limitações Conhecidas (MVP)
+
+Este projeto é um MVP e possui limitações intencionais:
+- Conflito de agenda validado apenas por data/hora exata
+- Pagamento não integra com gateways externos
+- Exclusões físicas ainda existentes para algumas entidades
+- Idempotência de pagamento não implementada
+
+Esses pontos foram mantidos fora do escopo para preservar simplicidade e foco didático.
 
 ---
 
-### Reactivate Client
-```bash
-curl -X PATCH http://localhost:8080/clients/12345678909/activate
-```
+## Objetivo do Projeto
+
+Este projeto foi desenvolvido como **primeiro projeto back-end robusto**, com foco em:
+- Modelagem de domínio
+- Fluxo de negócio
+- Consistência de dados
+- Aprendizado prático de arquitetura back-end
+
+Ele **não se propõe a ser um sistema pronto para produção**, mas sim um estudo aplicado e evolutivo.
 
 ---
 
-## 📝 Notes
+## Autor
 
-- CPF can be sent **with or without formatting**
-- CPF is stored normalized and returned formatted
-- Only contact fields can be updated via PATCH
-- Inactive clients cannot be updated (except reactivation)
-- Errors are returned in a standardized JSON format
-
----
-
-## 👤 Author
-
-Backend portfolio project developed to demonstrate Java, Spring Boot, REST API design, Docker usage, and clean architecture practices.
+Projeto desenvolvido por Andressa Soares para fins de estudo e portfólio.
