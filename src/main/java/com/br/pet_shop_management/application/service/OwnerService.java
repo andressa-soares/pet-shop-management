@@ -5,8 +5,10 @@ import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.api.dto.request.OwnerUpdateForm;
 import com.br.pet_shop_management.application.mapper.OwnerMapper;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
+import com.br.pet_shop_management.domain.enums.AppointmentStatus;
 import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.application.exception.BusinessException;
+import com.br.pet_shop_management.infrastructure.persistence.AppointmentRepository;
 import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import com.br.pet_shop_management.util.CpfUtils;
 import com.br.pet_shop_management.util.PhoneUtils;
@@ -16,11 +18,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
+    private final AppointmentRepository appointmentRepository;
 
     public Page<OwnerDTO> findAll(Pageable pageable) {
         return ownerRepository.findByStatus(Status.ACTIVE, pageable)
@@ -103,6 +108,14 @@ public class OwnerService {
 
         if (owner.getStatus() == Status.INACTIVE) {
             throw new BusinessException("Owner is already inactive.");
+        }
+
+        List<AppointmentStatus> openStatuses = List.of(AppointmentStatus.SCHEDULED,
+                                                       AppointmentStatus.IN_PROGRESS,
+                                                       AppointmentStatus.WAITING_PAYMENT);
+
+        if (appointmentRepository.existsByOwnerIdAndStatusIn(owner.getId(), openStatuses)) {
+            throw new BusinessException("Owner cannot be inactivated while there are open appointments.");
         }
 
         owner.deactivate();

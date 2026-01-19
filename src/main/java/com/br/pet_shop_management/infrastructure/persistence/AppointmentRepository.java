@@ -34,4 +34,5 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
             Pageable pageable);
 
     boolean existsByPetIdAndScheduledAtAndStatusIn(Long petId, LocalDateTime scheduledAt, List<AppointmentStatus> statuses);
+    boolean existsByOwnerIdAndStatusIn(Long ownerId, List<AppointmentStatus> statuses);
 }
