@@ -44,20 +44,13 @@ public class PaymentEntity {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    private PaymentEntity(AppointmentEntity appointment, PaymentMethod method, PaymentStatus status, Integer installments, BigDecimal finalAmount, LocalDateTime createdAt) {
+    private PaymentEntity(AppointmentEntity appointment, PaymentMethod method, Integer installments, BigDecimal finalAmount, LocalDateTime createdAt) {
+
         if (appointment == null) throw new IllegalArgumentException("Appointment must be provided.");
         if (method == null) throw new IllegalArgumentException("Payment method must be provided.");
-        if (status == null) throw new IllegalArgumentException("Payment status must be provided.");
         if (installments == null) throw new IllegalArgumentException("Installments must be provided.");
-        if (createdAt == null) throw new IllegalArgumentException("createdAt must be provided.");
         if (finalAmount == null) throw new IllegalArgumentException("finalAmount must be provided.");
-
-        this.appointment = appointment;
-        this.method = method;
-        this.status = status;
-        this.installments = installments;
-        this.finalAmount = finalAmount;
-        this.createdAt = createdAt;
+        if (createdAt == null) throw new IllegalArgumentException("createdAt must be provided.");
 
         if (installments < 1 || installments > 6) {
             throw new IllegalArgumentException("Installments must be between 1 and 6.");
@@ -68,32 +61,19 @@ public class PaymentEntity {
         }
 
         BigDecimal scaled = MoneyUtils.scale(finalAmount);
-        if (scaled.compareTo(BigDecimal.ZERO) <= 0) {
+        if (scaled.signum() <= 0) {
             throw new IllegalArgumentException("finalAmount must be > 0.");
         }
 
+        this.appointment = appointment;
+        this.method = method;
+        this.status = PaymentStatus.APPROVED;
+        this.installments = installments;
         this.finalAmount = scaled;
+        this.createdAt = createdAt;
     }
 
     public static PaymentEntity createApproved(AppointmentEntity appointment, PaymentMethod method, int installments, BigDecimal finalAmount, LocalDateTime createdAt) {
-        return new PaymentEntity(appointment, method, PaymentStatus.APPROVED, installments, finalAmount, createdAt);
-    }
-
-    public static PaymentEntity createPending(AppointmentEntity appointment, PaymentMethod method, int installments, BigDecimal finalAmount, LocalDateTime createdAt) {
-        return new PaymentEntity(appointment, method, PaymentStatus.PENDING, installments, finalAmount, createdAt);
-    }
-
-    public void approve() {
-        if (this.status != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Only PENDING payments can be approved.");
-        }
-        this.status = PaymentStatus.APPROVED;
-    }
-
-    public void reject() {
-        if (this.status != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Only PENDING payments can be rejected.");
-        }
-        this.status = PaymentStatus.REJECTED;
+        return new PaymentEntity(appointment, method, installments, finalAmount, createdAt);
     }
 }

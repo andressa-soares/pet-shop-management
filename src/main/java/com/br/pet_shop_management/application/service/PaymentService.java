@@ -2,13 +2,13 @@ package com.br.pet_shop_management.application.service;
 
 import com.br.pet_shop_management.api.dto.request.PaymentForm;
 import com.br.pet_shop_management.api.dto.response.PaymentDTO;
-import com.br.pet_shop_management.application.exception.BusinessException;
+import com.br.pet_shop_management.application.exception.DomainRuleException;
+import com.br.pet_shop_management.application.exception.InvalidInputException;
 import com.br.pet_shop_management.application.mapper.PaymentMapper;
 import com.br.pet_shop_management.domain.entity.AppointmentEntity;
 import com.br.pet_shop_management.domain.entity.PaymentEntity;
 import com.br.pet_shop_management.domain.enums.AppointmentStatus;
 import com.br.pet_shop_management.domain.enums.PaymentMethod;
-import com.br.pet_shop_management.domain.enums.PaymentStatus;
 import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.infrastructure.config.PaymentProperties;
 import com.br.pet_shop_management.infrastructure.persistence.AppointmentRepository;
@@ -33,26 +33,25 @@ public class PaymentService {
     @Transactional
     public PaymentDTO registerPayment(Long appointmentId, PaymentForm form) {
         if (appointmentId == null) {
-            throw new BusinessException("Appointment ID must be provided.");
+            throw new InvalidInputException("Appointment ID must be provided.");
         }
 
         AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
 
-        if (appointment.getStatus() != AppointmentStatus.WAITING_PAYMENT) {
-            throw new BusinessException("Payment can only be registered when appointment is WAITING_PAYMENT.");
-        }
-
-        if (paymentRepository.existsByAppointmentIdAndStatus(appointmentId, PaymentStatus.APPROVED)) {
-            throw new BusinessException("This appointment already has an approved payment.");
-        }
-
         if (appointment.getOwner().getStatus() == Status.INACTIVE) {
-            throw new BusinessException("Appointments from inactive owners cannot be paid.");
+            throw new DomainRuleException("Appointments from inactive owners cannot be paid.");
+        }
+
+        if (appointment.getStatus() != AppointmentStatus.WAITING_PAYMENT) {
+            throw new DomainRuleException("Payment can only be registered when appointment is WAITING_PAYMENT.");
+        }
+
+        if (paymentRepository.existsByAppointmentId(appointmentId)) {
+            throw new DomainRuleException("This appointment already has a registered payment.");
         }
 
         int installments = resolveInstallments(form.method(), form.installments());
-
         BigDecimal finalAmount = calculateFinalAmount(appointment.getTotalGross(), form.method(), installments);
 
         PaymentEntity payment = PaymentEntity.createApproved(appointment, form.method(), installments, finalAmount, LocalDateTime.now());
@@ -62,30 +61,32 @@ public class PaymentService {
         try {
             appointment.complete();
         } catch (IllegalStateException e) {
-            throw new BusinessException(e.getMessage());
+            throw new DomainRuleException(e.getMessage());
         }
-        appointmentRepository.save(appointment);
 
+        appointmentRepository.save(appointment);
         return PaymentMapper.toDTO(saved);
     }
 
     private int resolveInstallments(PaymentMethod method, Integer installments) {
+        if (method == null) throw new InvalidInputException("Payment method is required.");
+
         if (method == PaymentMethod.CARD) {
-            if (installments == null) {
-                throw new BusinessException("Installments are required for CARD payments.");
-            }
-            if (installments < 1 || installments > 6) {
-                throw new BusinessException("Installments must be between 1 and 6.");
-            }
+            if (installments == null) throw new InvalidInputException("Installments are required for CARD payments.");
+            if (installments < 1 || installments > 6) throw new InvalidInputException("Installments must be between 1 and 6.");
             return installments;
+        }
+
+        if (installments != null && installments != 1) {
+            throw new InvalidInputException("Installments must be omitted or 1 for PIX/CASH payments.");
         }
 
         return 1;
     }
 
     private BigDecimal calculateFinalAmount(BigDecimal totalGross, PaymentMethod method, int installments) {
-        if (totalGross == null || totalGross.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException("Invalid appointment totalGross.");
+        if (totalGross == null || totalGross.signum() <= 0) {
+            throw new DomainRuleException("Invalid appointment totalGross.");
         }
 
         BigDecimal gross = MoneyUtils.scale(totalGross);
@@ -99,14 +100,11 @@ public class PaymentService {
         }
 
         BigDecimal rate = paymentProperties.getInterestPerExtraInstallment();
-        if (rate == null || rate.compareTo(BigDecimal.ZERO) < 0) {
-            throw new BusinessException("Invalid card interest rate configuration.");
+        if (rate == null || rate.signum() < 0) {
+            throw new DomainRuleException("Invalid card interest rate configuration.");
         }
 
-        BigDecimal multiplier = BigDecimal.ONE.add(
-                rate.multiply(BigDecimal.valueOf(installments - 2L))
-        );
-
+        BigDecimal multiplier = BigDecimal.ONE.add(rate.multiply(BigDecimal.valueOf(installments - 2L)));
         return MoneyUtils.scale(gross.multiply(multiplier));
     }
 }
