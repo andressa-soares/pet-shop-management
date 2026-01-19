@@ -52,6 +52,10 @@ public class PetService {
             throw new BusinessException("Inactive owners cannot have pets.");
         }
 
+        if (petRepository.existsPetDuplicate(form.ownerId(), form.name().trim())) {
+            throw new BusinessException("This owner already has a pet with the same name.");
+        }
+
         validateBreedMatchesSpecies(form.species(), form.breed());
 
         PetEntity pet = PetMapper.toEntity(form, owner);
