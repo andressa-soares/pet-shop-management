@@ -1,5 +1,6 @@
 package com.br.pet_shop_management.api.controller;
 
+import com.br.pet_shop_management.api.dto.request.AppointmentActionForm;
 import com.br.pet_shop_management.api.dto.request.AppointmentForm;
 import com.br.pet_shop_management.api.dto.request.AppointmentItemForm;
 import com.br.pet_shop_management.api.dto.response.AppointmentDTO;
@@ -43,22 +44,12 @@ public class AppointmentController {
     }
 
     @PostMapping("/{id:\\d+}/items")
-    public AppointmentDTO addAppointmentItems(@PathVariable Long id, @Valid @RequestBody List<AppointmentItemForm> items) {
+    public AppointmentDTO addAppointmentItems(@PathVariable Long id, @Valid @RequestBody List<@Valid AppointmentItemForm> items) {
         return appointmentService.addAppointmentItems(id, items);
     }
 
-    @PatchMapping("/{id:\\d+}/start")
-    public AppointmentDTO start(@PathVariable Long id) {
-        return appointmentService.startAppointment(id);
-    }
-
-    @PatchMapping("/{id:\\d+}/close")
-    public AppointmentDTO closeForPayment(@PathVariable Long id) {
-        return appointmentService.closeForPayment(id);
-    }
-
-    @PatchMapping("/{id:\\d+}/cancel")
-    public AppointmentDTO cancel(@PathVariable Long id) {
-        return appointmentService.cancelAppointment(id);
+    @PostMapping("/{id:\\d+}/actions")
+    public AppointmentDTO applyAction(@PathVariable Long id, @Valid @RequestBody AppointmentActionForm form) {
+        return appointmentService.applyAction(id, form.action());
     }
 }
