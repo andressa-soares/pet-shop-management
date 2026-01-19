@@ -1,5 +1,6 @@
 package com.br.pet_shop_management.api.controller;
 
+import com.br.pet_shop_management.api.dto.request.CatalogActionForm;
 import com.br.pet_shop_management.api.dto.request.CatalogForm;
 import com.br.pet_shop_management.api.dto.response.CatalogDTO;
 import com.br.pet_shop_management.application.service.CatalogService;
@@ -34,14 +35,9 @@ public class CatalogController {
         return catalogService.saveCatalogItem(form);
     }
 
-    @PatchMapping("/{id:\\d+}/activate")
-    public CatalogDTO activateCatalogItem(@PathVariable Long id) {
-        return catalogService.activateCatalogItem(id);
-    }
-
-    @PatchMapping("/{id:\\d+}/deactivate")
-    public CatalogDTO deactivateCatalogItem(@PathVariable Long id) {
-        return catalogService.deactivateCatalogItem(id);
+    @PostMapping("/{id:\\d+}/actions")
+    public CatalogDTO applyAction(@PathVariable Long id, @Valid @RequestBody CatalogActionForm form) {
+        return catalogService.applyAction(id, form.action());
     }
 
     @DeleteMapping("/{id:\\d+}")

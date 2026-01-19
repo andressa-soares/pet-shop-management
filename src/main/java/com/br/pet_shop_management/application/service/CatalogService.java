@@ -1,8 +1,10 @@
 package com.br.pet_shop_management.application.service;
 
 import com.br.pet_shop_management.api.dto.request.CatalogForm;
+import com.br.pet_shop_management.api.dto.request.enums.CatalogAction;
 import com.br.pet_shop_management.api.dto.response.CatalogDTO;
-import com.br.pet_shop_management.application.exception.BusinessException;
+import com.br.pet_shop_management.application.exception.DomainRuleException;
+import com.br.pet_shop_management.application.exception.InvalidInputException;
 import com.br.pet_shop_management.application.mapper.CatalogMapper;
 import com.br.pet_shop_management.domain.entity.CatalogEntity;
 import com.br.pet_shop_management.domain.enums.Status;
@@ -21,9 +23,7 @@ public class CatalogService {
 
     public Page<CatalogDTO> findCatalogItems(Status status, Pageable pageable) {
         Status effectiveStatus = (status == null) ? Status.ACTIVE : status;
-
-        return catalogRepository.findByStatus(effectiveStatus, pageable)
-                .map(CatalogMapper::toDTO);
+        return catalogRepository.findByStatus(effectiveStatus, pageable).map(CatalogMapper::toDTO);
     }
 
     public CatalogDTO findById(Long id) {
@@ -33,34 +33,41 @@ public class CatalogService {
     }
 
     public CatalogDTO saveCatalogItem(CatalogForm form) {
-        if (catalogRepository.existsByName(form.name())) {
-            throw new BusinessException("Catalog item with this name already exists.");
+        String name = normalizeName(form.name());
+
+        // Ideal: existsByNameIgnoreCase ou unique index; mantendo simples:
+        if (catalogRepository.existsByName(name)) {
+            throw new DomainRuleException("Catalog item with this name already exists.");
         }
 
-        CatalogEntity entity = CatalogMapper.toEntity(form);
+        CatalogEntity entity = new CatalogEntity(
+                name,
+                form.description(),
+                form.durationMinutes(),
+                form.priceSmall(),
+                form.priceMedium(),
+                form.priceLarge()
+        );
+
         return CatalogMapper.toDTO(catalogRepository.save(entity));
     }
 
-    public CatalogDTO activateCatalogItem(Long id) {
+    public CatalogDTO applyAction(Long id, CatalogAction action) {
         CatalogEntity item = findCatalogEntity(id);
 
-        if (item.getStatus() == Status.ACTIVE) {
-            throw new BusinessException("Catalog item is already active.");
+        if (action == CatalogAction.ACTIVATE) {
+            if (item.getStatus() == Status.ACTIVE) throw new DomainRuleException("Catalog item is already active.");
+            item.activate();
+            return CatalogMapper.toDTO(catalogRepository.save(item));
         }
 
-        item.activate();
-        return CatalogMapper.toDTO(catalogRepository.save(item));
-    }
-
-    public CatalogDTO deactivateCatalogItem(Long id) {
-        CatalogEntity item = findCatalogEntity(id);
-
-        if (item.getStatus() == Status.INACTIVE) {
-            throw new BusinessException("Catalog item is already inactive.");
+        if (action == CatalogAction.DEACTIVATE) {
+            if (item.getStatus() == Status.INACTIVE) throw new DomainRuleException("Catalog item is already inactive.");
+            item.deactivate();
+            return CatalogMapper.toDTO(catalogRepository.save(item));
         }
 
-        item.deactivate();
-        return CatalogMapper.toDTO(catalogRepository.save(item));
+        throw new InvalidInputException("Unsupported action.");
     }
 
     public void deleteCatalogItem(Long id) {
@@ -69,10 +76,15 @@ public class CatalogService {
     }
 
     private CatalogEntity findCatalogEntity(Long id) {
-        if (id == null) {
-            throw new BusinessException("Catalog ID must be provided.");
-        }
+        if (id == null) throw new InvalidInputException("Catalog ID must be provided.");
         return catalogRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Catalog item not found."));
+    }
+
+    private String normalizeName(String raw) {
+        if (raw == null) throw new InvalidInputException("Name is required.");
+        String name = raw.trim();
+        if (name.isBlank()) throw new InvalidInputException("Name is required.");
+        return name;
     }
 }
