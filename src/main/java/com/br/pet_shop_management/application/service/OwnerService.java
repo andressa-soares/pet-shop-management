@@ -1,8 +1,11 @@
 package com.br.pet_shop_management.application.service;
 
+import com.br.pet_shop_management.api.dto.request.enums.OwnerAction;
 import com.br.pet_shop_management.api.dto.response.OwnerDTO;
 import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.api.dto.request.OwnerUpdateForm;
+import com.br.pet_shop_management.application.exception.DomainRuleException;
+import com.br.pet_shop_management.application.exception.InvalidInputException;
 import com.br.pet_shop_management.application.mapper.OwnerMapper;
 import com.br.pet_shop_management.domain.entity.OwnerEntity;
 import com.br.pet_shop_management.domain.enums.AppointmentStatus;
@@ -66,88 +69,69 @@ public class OwnerService {
         String normalizedCpf = normalizeCpf(cpf);
 
         if (form.phone() == null && form.email() == null && form.address() == null) {
-            throw new BusinessException("At least one field must be provided: phone, email or address.");
+            throw new InvalidInputException("At least one field must be provided: phone, email or address.");
         }
 
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
         if (owner.getStatus() == Status.INACTIVE) {
-            throw new BusinessException("Inactive owners cannot be updated.");
+            throw new DomainRuleException("Inactive owners cannot be updated.");
         }
 
         String normalizedPhone = form.phone() == null ? null : normalizePhone(form.phone());
-
         owner.updateContactInfo(normalizedPhone, form.email(), form.address());
 
-        OwnerEntity saved = ownerRepository.save(owner);
-        return OwnerMapper.toDTO(saved);
+        return OwnerMapper.toDTO(ownerRepository.save(owner));
     }
 
-    public OwnerDTO activateOwner(String cpf) {
+    public OwnerDTO applyAction(String cpf, OwnerAction action) {
         String normalizedCpf = normalizeCpf(cpf);
 
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
 
-        if (owner.getStatus() == Status.ACTIVE) {
-            throw new BusinessException("Owner is already active.");
+        if (action == OwnerAction.ACTIVATE) {
+            if (owner.getStatus() == Status.ACTIVE) {
+                throw new DomainRuleException("Owner is already active.");
+            }
+            owner.activate();
+            return OwnerMapper.toDTO(ownerRepository.save(owner));
         }
 
-        owner.activate();
+        if (action == OwnerAction.DEACTIVATE) {
+            if (owner.getStatus() == Status.INACTIVE) {
+                throw new DomainRuleException("Owner is already inactive.");
+            }
 
-        OwnerEntity saved = ownerRepository.save(owner);
-        return OwnerMapper.toDTO(saved);
-    }
+            List<AppointmentStatus> openStatuses = List.of(
+                    AppointmentStatus.SCHEDULED,
+                    AppointmentStatus.IN_PROGRESS,
+                    AppointmentStatus.WAITING_PAYMENT
+            );
 
-    public OwnerDTO deactivateOwner(String cpf) {
-        String normalizedCpf = normalizeCpf(cpf);
+            if (appointmentRepository.existsByOwnerIdAndStatusIn(owner.getId(), openStatuses)) {
+                throw new DomainRuleException("Owner cannot be inactivated while there are open appointments.");
+            }
 
-        OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
-                .orElseThrow(() -> new EntityNotFoundException("Owner not found."));
-
-        if (owner.getStatus() == Status.INACTIVE) {
-            throw new BusinessException("Owner is already inactive.");
+            owner.deactivate();
+            return OwnerMapper.toDTO(ownerRepository.save(owner));
         }
 
-        List<AppointmentStatus> openStatuses = List.of(AppointmentStatus.SCHEDULED,
-                                                       AppointmentStatus.IN_PROGRESS,
-                                                       AppointmentStatus.WAITING_PAYMENT);
-
-        if (appointmentRepository.existsByOwnerIdAndStatusIn(owner.getId(), openStatuses)) {
-            throw new BusinessException("Owner cannot be inactivated while there are open appointments.");
-        }
-
-        owner.deactivate();
-
-        OwnerEntity saved = ownerRepository.save(owner);
-        return OwnerMapper.toDTO(saved);
+        throw new InvalidInputException("Unsupported action.");
     }
 
     private String normalizeCpf(String cpf) {
         String normalized = CpfUtils.normalize(cpf);
-
-        if (normalized == null) {
-            throw new BusinessException("CPF must be provided.");
-        }
-
-        if (!CpfUtils.hasValidLength(normalized)) {
-            throw new BusinessException("CPF must contain exactly 11 digits.");
-        }
+        if (normalized == null) throw new InvalidInputException("CPF must be provided.");
+        if (!CpfUtils.hasValidLength(normalized)) throw new InvalidInputException("CPF must contain exactly 11 digits.");
         return normalized;
     }
 
     private String normalizePhone(String phone) {
         String normalized = PhoneUtils.normalize(phone);
-
-        if (normalized == null || normalized.isBlank()) {
-            throw new BusinessException("Phone must be provided.");
-        }
-
-        if (!PhoneUtils.hasValidLength(normalized)) {
-            throw new BusinessException("Phone must have 10 or 11 digits (no mask).");
-        }
-
+        if (normalized == null || normalized.isBlank()) throw new InvalidInputException("Phone must be provided.");
+        if (!PhoneUtils.hasValidLength(normalized)) throw new InvalidInputException("Phone must have 10 or 11 digits (no mask).");
         return normalized;
     }
 }

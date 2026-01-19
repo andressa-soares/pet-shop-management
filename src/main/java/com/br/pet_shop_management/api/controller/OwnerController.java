@@ -1,5 +1,6 @@
 package com.br.pet_shop_management.api.controller;
 
+import com.br.pet_shop_management.api.dto.request.OwnerActionForm;
 import com.br.pet_shop_management.api.dto.response.OwnerDTO;
 import com.br.pet_shop_management.api.dto.request.OwnerForm;
 import com.br.pet_shop_management.api.dto.request.OwnerUpdateForm;
@@ -23,7 +24,7 @@ public class OwnerController {
         return ownerService.findAll(pageable);
     }
 
-    @GetMapping("/cpf/{cpf}")
+    @GetMapping("/{cpf}")
     public OwnerDTO findByCpf(@PathVariable String cpf) {
         return ownerService.findByCpf(cpf);
     }
@@ -39,18 +40,13 @@ public class OwnerController {
         return ownerService.saveOwner(ownerForm);
     }
 
-    @PatchMapping("/{cpf}/update")
+    @PatchMapping("/{cpf}")
     public OwnerDTO updateOwnerContact(@PathVariable String cpf, @Valid @RequestBody OwnerUpdateForm form) {
         return ownerService.updateOwnerContact(cpf, form);
     }
 
-    @PatchMapping("/{cpf}/activate")
-    public OwnerDTO activateOwner(@PathVariable String cpf) {
-        return ownerService.activateOwner(cpf);
-    }
-
-    @DeleteMapping("/{cpf}/deactivate")
-    public OwnerDTO deactivateOwner(@PathVariable String cpf) {
-        return ownerService.deactivateOwner(cpf);
+    @PostMapping("/{cpf}/actions")
+    public OwnerDTO applyAction(@PathVariable String cpf, @Valid @RequestBody OwnerActionForm form) {
+        return ownerService.applyAction(cpf, form.action());
     }
 }
