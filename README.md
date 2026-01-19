@@ -248,3 +248,4 @@ Este projeto foi construído com foco em:
 - Evolução incremental
 
 Ele continuará sendo aprimorado com novos ajustes arquiteturais e refinamentos de regras, mantendo sempre o compromisso com **simplicidade, previsibilidade e intenção técnica clara**.
+
