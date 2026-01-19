@@ -5,8 +5,6 @@ import com.br.pet_shop_management.domain.enums.PetSize;
 
 import java.math.BigDecimal;
 
-import static com.br.pet_shop_management.domain.enums.PetSize.*;
-
 public final class CatalogPricing {
     private CatalogPricing() {}
 
