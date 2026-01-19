@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: true
+    disable-swagger-default-url: true
+    docExpansion: none
+
+  packages-to-scan: com.br.pet_shop_management.api.controller
+  paths-to-match: /**

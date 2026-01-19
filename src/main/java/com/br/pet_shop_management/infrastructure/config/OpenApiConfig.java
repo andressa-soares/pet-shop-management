@@ -13,7 +13,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Pet Shop Management API")
-                        .description("Owner management API")
+                        .description("Pet Shop management API focused on appointments, services and payments")
                         .version("1.0.0"));
     }
 }
