@@ -15,13 +15,15 @@ import com.br.pet_shop_management.infrastructure.persistence.AppointmentReposito
 import com.br.pet_shop_management.infrastructure.persistence.PaymentRepository;
 import com.br.pet_shop_management.util.MoneyUtils;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -32,39 +34,69 @@ public class PaymentService {
 
     @Transactional
     public PaymentDTO registerPayment(Long appointmentId, PaymentForm form) {
+        log.info("registerPayment started: appointmentId={}", appointmentId);
+
         if (appointmentId == null) {
+            log.warn("registerPayment invalid input: appointmentId is null");
             throw new InvalidInputException("Appointment ID must be provided.");
         }
 
+        if (form == null) {
+            log.warn("registerPayment invalid input: form is null. appointmentId={}", appointmentId);
+            throw new InvalidInputException("Payment form must be provided.");
+        }
+
         AppointmentEntity appointment = appointmentRepository.findDetailedByIdForUpdate(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Appointment not found."));
+                .orElseThrow(() -> {
+                    log.warn("registerPayment failed: appointment not found. appointmentId={}", appointmentId);
+                    return new EntityNotFoundException("Appointment not found.");
+                });
 
         if (appointment.getOwner().getStatus() == Status.INACTIVE) {
+            log.warn("registerPayment blocked: owner inactive. appointmentId={}, ownerId={}",
+                    appointment.getId(), appointment.getOwner().getId());
             throw new DomainRuleException("Appointments from inactive owners cannot be paid.");
         }
 
         if (appointment.getStatus() != AppointmentStatus.WAITING_PAYMENT) {
+            log.warn("registerPayment blocked: invalid appointment status. appointmentId={}, status={}",
+                    appointment.getId(), appointment.getStatus());
             throw new DomainRuleException("Payment can only be registered when appointment is WAITING_PAYMENT.");
         }
 
         if (paymentRepository.existsByAppointmentId(appointmentId)) {
+            log.warn("registerPayment blocked: payment already exists. appointmentId={}", appointmentId);
             throw new DomainRuleException("This appointment already has a registered payment.");
         }
 
         int installments = resolveInstallments(form.method(), form.installments());
         BigDecimal finalAmount = calculateFinalAmount(appointment.getTotalGross(), form.method(), installments);
 
-        PaymentEntity payment = PaymentEntity.createApproved(appointment, form.method(), installments, finalAmount, LocalDateTime.now());
+        log.info("registerPayment calculated: appointmentId={}, method={}, installments={}, totalGross={}, finalAmount={}",
+                appointment.getId(), form.method(), installments, appointment.getTotalGross(), finalAmount);
+
+        PaymentEntity payment = PaymentEntity.createApproved(
+                appointment,
+                form.method(),
+                installments,
+                finalAmount,
+                LocalDateTime.now()
+        );
 
         PaymentEntity saved = paymentRepository.save(payment);
 
         try {
             appointment.complete();
         } catch (IllegalStateException e) {
+            log.warn("registerPayment blocked by state rule: appointmentId={}, msg={}", appointment.getId(), e.getMessage());
             throw new DomainRuleException(e.getMessage());
         }
 
         appointmentRepository.save(appointment);
+
+        log.info("registerPayment completed: paymentId={}, appointmentId={}, appointmentStatusAfter={}",
+                saved.getId(), appointment.getId(), appointment.getStatus());
+
         return PaymentMapper.toDTO(saved);
     }
 
