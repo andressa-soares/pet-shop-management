@@ -9,6 +9,7 @@ import com.br.pet_shop_management.application.mapper.CatalogMapper;
 import com.br.pet_shop_management.domain.entity.CatalogEntity;
 import com.br.pet_shop_management.domain.enums.Status;
 import com.br.pet_shop_management.infrastructure.persistence.CatalogRepository;
+import com.br.pet_shop_management.infrastructure.persistence.OwnerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,21 +93,27 @@ public class CatalogService {
         CatalogEntity item = findCatalogEntity(id);
         Status before = item.getStatus();
 
-        if (action == CatalogAction.ACTIVATE) {
-            if (item.getStatus() == Status.ACTIVE) {
-                log.warn("applyCatalogAction blocked: already active. catalogId={}", item.getId());
-                throw new DomainRuleException("Catalog item is already active.");
+        switch (action) {
+            case ACTIVATE -> {
+                if (item.getStatus() == Status.ACTIVE) {
+                    log.warn("applyCatalogAction blocked: already active. catalogId={}", item.getId());
+                    throw new DomainRuleException("Catalog item is already active.");
+                }
+                item.activate();
             }
-            item.activate();
-        } else if (action == CatalogAction.DEACTIVATE) {
-            if (item.getStatus() == Status.INACTIVE) {
-                log.warn("applyCatalogAction blocked: already inactive. catalogId={}", item.getId());
-                throw new DomainRuleException("Catalog item is already inactive.");
+
+            case DEACTIVATE -> {
+                if (item.getStatus() == Status.INACTIVE) {
+                    log.warn("applyCatalogAction blocked: already inactive. catalogId={}", item.getId());
+                    throw new DomainRuleException("Catalog item is already inactive.");
+                }
+                item.deactivate();
             }
-            item.deactivate();
-        } else {
-            log.warn("applyCatalogAction invalid input: unsupported action. catalogId={}, action={}", item.getId(), action);
-            throw new InvalidInputException("Unsupported action.");
+
+            default -> {
+                log.warn("applyCatalogAction invalid input: unsupported action. catalogId={}, action={}", item.getId(), action);
+                throw new InvalidInputException("Unsupported action.");
+            }
         }
 
         CatalogEntity updated = catalogRepository.save(item);
