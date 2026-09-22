@@ -32,7 +32,7 @@ public class OwnerService {
     private final AppointmentRepository appointmentRepository;
 
     public Page<OwnerDTO> findAll(Pageable pageable) {
-        log.info("findOwners started: status=ACTIVE, page={}", pageable);
+        log.info("findOwners started: status=ACTIVE page={}", pageable);
 
         Page<OwnerDTO> result = ownerRepository.findByStatus(Status.ACTIVE, pageable)
                 .map(OwnerMapper::toDTO);
