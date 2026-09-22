@@ -44,6 +44,8 @@ public class OwnerService {
     public OwnerDTO findByCpf(String cpf) {
         String normalizedCpf = normalizeCpf(cpf);
         log.info("findOwnerByCpf: cpfNormalized={}", maskCpf(normalizedCpf));
+        log.info("findOwnerByCpf");
+
 
         OwnerEntity owner = ownerRepository.findByCpf(normalizedCpf)
                 .orElseThrow(() -> {
